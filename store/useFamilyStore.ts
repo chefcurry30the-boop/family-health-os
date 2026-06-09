@@ -139,10 +139,12 @@ interface FamilyStore {
 
   // Actions — journal
   addJournalEntry: (entry: JournalEntry) => void;
+  updateJournalEntry: (id: string, updates: Partial<JournalEntry>) => void;
   removeJournalEntry: (id: string) => void;
 
   // Actions — expenses
   addExpense: (expense: Expense) => void;
+  updateExpense: (id: string, updates: Partial<Expense>) => void;
   removeExpense: (id: string) => void;
 
   // Actions — vaccines
@@ -248,11 +250,19 @@ export const useFamilyStore = create<FamilyStore>()(
 
       addJournalEntry: (entry) =>
         set((state) => ({ journalEntries: [entry, ...state.journalEntries] })),
+      updateJournalEntry: (id, updates) =>
+        set((state) => ({
+          journalEntries: state.journalEntries.map((e) => (e.id === id ? { ...e, ...updates } : e)),
+        })),
       removeJournalEntry: (id) =>
         set((state) => ({ journalEntries: state.journalEntries.filter((e) => e.id !== id) })),
 
       addExpense: (expense) =>
         set((state) => ({ expenses: [expense, ...state.expenses] })),
+      updateExpense: (id, updates) =>
+        set((state) => ({
+          expenses: state.expenses.map((e) => (e.id === id ? { ...e, ...updates } : e)),
+        })),
       removeExpense: (id) =>
         set((state) => ({ expenses: state.expenses.filter((e) => e.id !== id) })),
 

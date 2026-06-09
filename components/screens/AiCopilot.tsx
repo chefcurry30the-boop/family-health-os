@@ -38,8 +38,8 @@ function getSuggestions(
 
   return [
     firstMed
-      ? `What are ${firstMed.memberName}'s current medications?`
-      : "What are my current medications?",
+      ? `Mark ${firstMed.memberName}'s ${firstMed.name} as taken`
+      : "Mark my first medication as taken",
     child
       ? `When is ${child.name.split(" ")[0]} due for their next vaccine?`
       : "When is the next vaccine due?",
@@ -60,8 +60,18 @@ function buildSystemContext(state: ReturnType<typeof useFamilyStore.getState>) {
   const meds = state.medications
     .map(
       (med) =>
-        `- ${med.name} ${med.dosage} for ${med.memberName} (${med.schedule}, ${med.timeOfDay}). Taken: ${med.taken ? "Yes" : "No"}.`
+        `- ID: ${med.id} | ${med.name} ${med.dosage} for ${med.memberName} (${med.schedule}, ${med.timeOfDay}). Taken: ${med.taken ? "Yes" : "No"}.`
     )
+    .join("\n");
+
+  const journal = state.journalEntries
+    .slice(0, 6)
+    .map((e) => `- ID: ${e.id} | ${e.date} ${e.time}: ${e.text.slice(0, 80)}${e.text.length > 80 ? "..." : ""} [mood: ${e.mood}, tags: ${e.tags.join(", ")}]`)
+    .join("\n");
+
+  const expenses = state.expenses
+    .slice(0, 6)
+    .map((e) => `- ID: ${e.id} | ${e.description}: ₹${e.amount} on ${e.date} [category: ${e.category}]`)
     .join("\n");
 
   const events = state.timelineEvents
@@ -76,25 +86,93 @@ function buildSystemContext(state: ReturnType<typeof useFamilyStore.getState>) {
     })
     .join("\n");
 
-  return `You are Nova Health OS AI Copilot. You help users understand their family health data. Be concise, accurate, and caring.
+  return `You are Nova Health OS AI Copilot. You help users understand and manage their family health data. Be concise, accurate, and caring.
 
-Family Members:
+FAMILY MEMBERS:
 ${members || "None yet"}
 
-Medications:
+MEDICATIONS (with IDs):
 ${meds || "None yet"}
 
-Recent Timeline:
+JOURNAL ENTRIES (with IDs):
+${journal || "None yet"}
+
+EXPENSES (with IDs):
+${expenses || "None yet"}
+
+RECENT TIMELINE:
 ${events || "None yet"}
 
-Uploaded Documents:
-${docs || "None yet"}`;
+UPLOADED DOCUMENTS:
+${docs || "None yet"}
+
+---
+
+TOOL INSTRUCTIONS:
+You can EDIT existing data by outputting a tool call block. When the user asks to change, update, mark, edit, or modify something, use the appropriate tool instead of just talking about it.
+
+Available tools:
+1. update_medication — Update fields on a medication by ID.
+   Fields: name, dosage, schedule, timeOfDay, taken (boolean), takenTime
+   Example: Mark James's Lisinopril as taken → update_medication id=lisinopril taken=true
+
+2. update_journal_entry — Update a journal entry by ID.
+   Fields: text, tags (array), mood (great/good/okay/unwell/bad)
+   Example: Edit journal entry to add "headache" tag → update_journal_entry id=1 tags=["Headache","Stress"]
+
+3. update_expense — Update an expense by ID.
+   Fields: description, amount (number), date, category
+   Example: Change expense amount → update_expense id=1 amount=-500
+
+TOOL CALL FORMAT — wrap exactly like this:
+[[TOOL_CALL]]
+{"tool": "update_medication", "id": "lisinopril", "updates": {"taken": true}}
+[[/TOOL_CALL]]
+
+You may emit multiple tool calls in one response. After tools run, you will receive confirmation. Do NOT mention you cannot edit data — you absolutely can via these tools.`;
 }
 
 interface Message {
   role: "assistant" | "user";
   text: string;
   image?: string;
+}
+
+function executeToolCalls(text: string): { success: boolean; logs: string[] } {
+  const logs: string[] = [];
+  const regex = /\[\[TOOL_CALL\]\]([\s\S]*?)\[\[\/TOOL_CALL\]\]/g;
+  let match;
+  let found = false;
+
+  while ((match = regex.exec(text)) !== null) {
+    found = true;
+    try {
+      const payload = JSON.parse(match[1].trim());
+      const { tool, id, updates } = payload;
+
+      if (tool === "update_medication") {
+        useFamilyStore.getState().updateMedication(id, updates);
+        logs.push(`Updated medication ${id}: ${JSON.stringify(updates)}`);
+      } else if (tool === "update_journal_entry") {
+        useFamilyStore.getState().updateJournalEntry(id, updates);
+        logs.push(`Updated journal entry ${id}: ${JSON.stringify(updates)}`);
+      } else if (tool === "update_expense") {
+        useFamilyStore.getState().updateExpense(id, updates);
+        logs.push(`Updated expense ${id}: ${JSON.stringify(updates)}`);
+      } else {
+        logs.push(`Unknown tool: ${tool}`);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "parse error";
+      logs.push(`Tool call failed: ${msg}`);
+    }
+  }
+
+  return { success: found && logs.every((l) => !l.includes("failed") && !l.includes("Unknown")), logs };
+}
+
+function stripToolCalls(text: string): string {
+  return text.replace(/\[\[TOOL_CALL\]\][\s\S]*?\[\[\/TOOL_CALL\]\]/g, "").trim();
 }
 
 export default function AiCopilot() {
@@ -198,7 +276,29 @@ export default function AiCopilot() {
       const reply =
         data.choices?.[0]?.message?.content ||
         "I couldn't generate a response. Please try again.";
-      setMessages((prev) => [...prev, { role: "assistant", text: reply }]);
+
+      // Check for tool calls in the AI response
+      const toolResult = executeToolCalls(reply);
+      const cleanReply = stripToolCalls(reply);
+
+      if (toolResult.success) {
+        // Execute tools succeeded — append confirmation inline
+        const confirmation = toolResult.logs.map((l) => `✓ ${l}`).join("\n");
+        const fullReply = cleanReply
+          ? `${cleanReply}\n\n━━━ Edits applied ━━━\n${confirmation}`
+          : `Done. I've updated the data:\n${confirmation}`;
+        setMessages((prev) => [...prev, { role: "assistant", text: fullReply }]);
+      } else if (toolResult.logs.length > 0) {
+        // Tools were attempted but some failed
+        const failText = toolResult.logs.join("\n");
+        const fullReply = cleanReply
+          ? `${cleanReply}\n\n⚠ Some edits failed:\n${failText}`
+          : `Some edits failed:\n${failText}`;
+        setMessages((prev) => [...prev, { role: "assistant", text: fullReply }]);
+      } else {
+        // No tools — normal reply
+        setMessages((prev) => [...prev, { role: "assistant", text: cleanReply || reply }]);
+      }
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Unknown error";
