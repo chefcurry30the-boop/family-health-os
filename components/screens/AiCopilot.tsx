@@ -86,7 +86,7 @@ function buildSystemContext(state: ReturnType<typeof useFamilyStore.getState>) {
     })
     .join("\n");
 
-  return `You are Nova Health OS AI Copilot. You help users understand and manage their family health data. Be concise, accurate, and caring.
+  return `You are Nova Health OS AI Copilot. You are the user's command center — you can read, add, edit, and delete any family health data. Be concise, accurate, and caring.
 
 FAMILY MEMBERS:
 ${members || "None yet"}
@@ -109,25 +109,55 @@ ${docs || "None yet"}
 ---
 
 TOOL INSTRUCTIONS:
-You can EDIT existing data by outputting a tool call block. When the user asks to change, update, mark, edit, or modify something, use the appropriate tool instead of just talking about it.
-
-Available tools:
-1. update_medication — Update fields on a medication by ID.
-   Fields: name, dosage, schedule, timeOfDay, taken (boolean), takenTime
-   Example: Mark James's Lisinopril as taken → update_medication id=lisinopril taken=true
-
-2. update_journal_entry — Update a journal entry by ID.
-   Fields: text, tags (array), mood (great/good/okay/unwell/bad)
-   Example: Edit journal entry to add "headache" tag → update_journal_entry id=1 tags=["Headache","Stress"]
-
-3. update_expense — Update an expense by ID.
-   Fields: description, amount (number), date, category
-   Example: Change expense amount → update_expense id=1 amount=-500
+You have FULL CRUD access to the user's health data. When they ask to add, create, schedule, log, record, remove, delete, update, edit, or modify anything — use the appropriate tool. Never say you can't.
 
 TOOL CALL FORMAT — wrap exactly like this:
 [[TOOL_CALL]]
-{"tool": "update_medication", "id": "lisinopril", "updates": {"taken": true}}
+{"tool": "TOOL_NAME", ...payload}
 [[/TOOL_CALL]]
+
+Available tools:
+
+1. add_medication — Create a new medication.
+   Fields: name, dosage, memberId, memberName, schedule, timeOfDay (morning/afternoon/evening/morning-evening), shape (half/capsule/round/tablet), color (hex), taken (boolean)
+   Example: Add Aspirin for James → add_medication {"name": "Aspirin 81mg", "dosage": "1 tablet daily", "memberId": "james", "memberName": "James", "schedule": "Daily morning", "timeOfDay": "morning", "shape": "round", "color": "#e84040", "taken": false}
+
+2. update_medication — Update fields on a medication by ID.
+   Fields: name, dosage, schedule, timeOfDay, taken (boolean), takenTime
+   Example: Mark as taken → update_medication {"id": "lisinopril", "updates": {"taken": true}}
+
+3. remove_medication — Delete a medication by ID.
+   Example: remove_medication {"id": "lisinopril"}
+
+4. add_journal_entry — Log a new journal entry.
+   Fields: text (required), tags (array), mood (great/good/okay/unwell/bad)
+   Example: add_journal_entry {"text": "Woke up with a headache", "tags": ["Headache"], "mood": "unwell"}
+
+5. update_journal_entry — Update a journal entry by ID.
+   Fields: text, tags (array), mood
+   Example: update_journal_entry {"id": "1", "updates": {"tags": ["Headache","Stress"]}}
+
+6. remove_journal_entry — Delete a journal entry by ID.
+   Example: remove_journal_entry {"id": "1"}
+
+7. add_expense — Record a new expense.
+   Fields: description, amount (number, negative for cost), date, memberId, category, icon
+   Example: add_expense {"description": "CVS Pharmacy", "amount": -45, "date": "Dec 15", "memberId": "james", "category": "pharmacy", "icon": "pill"}
+
+8. update_expense — Update an expense by ID.
+   Fields: description, amount, date, category
+   Example: update_expense {"id": "1", "updates": {"amount": -3000}}
+
+9. remove_expense — Delete an expense by ID.
+   Example: remove_expense {"id": "1"}
+
+10. add_timeline_event — Add a health timeline event.
+    Fields: date, memberName, title, description, tags (array), type (visit/lab/emergency/rx/vital)
+    Example: add_timeline_event {"date": "Dec 15, 2024", "memberName": "James Mitchell", "title": "Blood Pressure Check", "description": "BP 120/80 at home.", "tags": ["Vitals"], "type": "vital"}
+
+11. schedule_reminder — Schedule a future reminder as a timeline event.
+    Fields: date, memberName, title, description
+    Example: schedule_reminder {"date": "Dec 20, 2024", "memberName": "Robert Mitchell", "title": "Cardiologist Appointment", "description": "Dr. Chen at 10:00 AM. Bring insurance card."}
 
 You may emit multiple tool calls in one response. After tools run, you will receive confirmation. Do NOT mention you cannot edit data — you absolutely can via these tools.`;
 }
@@ -147,22 +177,69 @@ function executeToolCalls(text: string): { success: boolean; logs: string[] } {
   const regex = /\[\[TOOL_CALL\]\]([\s\S]*?)\[\[\/TOOL_CALL\]\]/g;
   let match;
   let found = false;
+  const state = useFamilyStore.getState();
 
   while ((match = regex.exec(text)) !== null) {
     found = true;
     try {
       const payload = JSON.parse(match[1].trim());
-      const { tool, id, updates } = payload;
+      const { tool, id, updates, ...rest } = payload;
 
-      if (tool === "update_medication") {
-        useFamilyStore.getState().updateMedication(id, updates);
-        logs.push(`Updated medication ${id}: ${JSON.stringify(updates)}`);
+      if (tool === "add_medication") {
+        const newMed = {
+          id: String(Date.now()) + Math.random().toString(36).slice(2, 6),
+          taken: false,
+          ...rest,
+        };
+        state.addMedication(newMed);
+        logs.push(`Added medication: ${newMed.name}`);
+      } else if (tool === "update_medication") {
+        state.updateMedication(id, updates);
+        logs.push(`Updated medication ${id}`);
+      } else if (tool === "remove_medication") {
+        state.removeMedication(id);
+        logs.push(`Removed medication ${id}`);
+      } else if (tool === "add_journal_entry") {
+        const now = new Date();
+        const entry = {
+          id: String(Date.now()),
+          date: now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }),
+          time: now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
+          tags: [],
+          mood: "okay" as const,
+          ...rest,
+        };
+        state.addJournalEntry(entry);
+        logs.push(`Added journal entry: ${entry.text.slice(0, 40)}...`);
       } else if (tool === "update_journal_entry") {
-        useFamilyStore.getState().updateJournalEntry(id, updates);
-        logs.push(`Updated journal entry ${id}: ${JSON.stringify(updates)}`);
+        state.updateJournalEntry(id, updates);
+        logs.push(`Updated journal entry ${id}`);
+      } else if (tool === "remove_journal_entry") {
+        state.removeJournalEntry(id);
+        logs.push(`Removed journal entry ${id}`);
+      } else if (tool === "add_expense") {
+        const exp = {
+          id: String(Date.now()),
+          ...rest,
+        };
+        state.addExpense(exp);
+        logs.push(`Added expense: ${exp.description}`);
       } else if (tool === "update_expense") {
-        useFamilyStore.getState().updateExpense(id, updates);
-        logs.push(`Updated expense ${id}: ${JSON.stringify(updates)}`);
+        state.updateExpense(id, updates);
+        logs.push(`Updated expense ${id}`);
+      } else if (tool === "remove_expense") {
+        state.removeExpense(id);
+        logs.push(`Removed expense ${id}`);
+      } else if (tool === "add_timeline_event" || tool === "schedule_reminder") {
+        const evt = {
+          id: String(Date.now()),
+          type: "visit" as const,
+          tags: tool === "schedule_reminder" ? ["Reminder"] : [],
+          description: "",
+          ...rest,
+        };
+        state.addTimelineEvent(evt);
+        logs.push(`Added ${tool === "schedule_reminder" ? "reminder" : "timeline event"}: ${evt.title}`);
       } else {
         logs.push(`Unknown tool: ${tool}`);
       }

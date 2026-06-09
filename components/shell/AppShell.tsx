@@ -41,14 +41,21 @@ export function AppShell({ children, showNav = true }: AppShellProps) {
         >
           {/* Status bar */}
           <div className="h-[59px] shrink-0 z-50 flex items-center justify-between px-6 pt-2">
-            <button
-              onClick={() => toggleSidebar()}
-              className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors"
-              aria-label="Open sidebar"
-            >
-              <PanelLeft size={18} />
-              <span className="text-xs font-semibold">Menu</span>
-            </button>
+            {!isEmergencyMode ? (
+              <button
+                onClick={() => toggleSidebar()}
+                className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors"
+                aria-label="Open sidebar"
+              >
+                <PanelLeft size={18} />
+                <span className="text-xs font-semibold">Menu</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-1.5 text-white/30">
+                <PanelLeft size={18} />
+                <span className="text-xs font-semibold">Menu</span>
+              </div>
+            )}
             <span className="text-xs font-semibold text-white/90 font-body">
               9:41
             </span>
