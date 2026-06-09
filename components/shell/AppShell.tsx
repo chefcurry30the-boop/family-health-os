@@ -19,8 +19,7 @@ export function AppShell({ children, showNav = true }: AppShellProps) {
     store.toggleEmergencyMode(false);
   };
 
-  const isEmergencyScreen = currentScreen === "emergency";
-  const showEmergencyButton = showNav && !isEmergencyMode && !isEmergencyScreen;
+  const showEmergencyButton = showNav && !isEmergencyMode && currentScreen === "dashboard";
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-black p-4 md:p-8">
