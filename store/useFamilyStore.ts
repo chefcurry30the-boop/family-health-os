@@ -1,12 +1,20 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+export interface EmergencyContact {
+  id: string;
+  name: string;
+  relation: string;
+  phone: string;
+}
+
 export interface FamilyMember {
   id: string;
   name: string;
   relation: string;
   age: number;
   status: "healthy" | "monitored" | "critical";
+  bloodType: string;
   initials: string;
   avatarGradient: string;
   records: number;
@@ -115,6 +123,7 @@ interface FamilyStore {
   vaccinations: Vaccination[];
   uploadedDocs: UploadedDoc[];
   chatMessages: ChatMessage[];
+  emergencyContacts: EmergencyContact[];
 
   // Actions — navigation
   setScreen: (screen: string) => void;
@@ -168,6 +177,11 @@ interface FamilyStore {
   addChatMessage: (msg: ChatMessage) => void;
   setChatMessages: (msgs: ChatMessage[]) => void;
   clearChatMessages: () => void;
+
+  // Actions — emergency
+  addEmergencyContact: (contact: EmergencyContact) => void;
+  updateEmergencyContact: (id: string, updates: Partial<EmergencyContact>) => void;
+  removeEmergencyContact: (id: string) => void;
 }
 
 export const useFamilyStore = create<FamilyStore>()(
@@ -191,6 +205,7 @@ export const useFamilyStore = create<FamilyStore>()(
       vaccinations: [],
       uploadedDocs: [],
       chatMessages: [],
+      emergencyContacts: [],
 
       setScreen: (screen) =>
         set((state) => ({
@@ -301,6 +316,15 @@ export const useFamilyStore = create<FamilyStore>()(
       setChatMessages: (msgs) => set(() => ({ chatMessages: msgs })),
       clearChatMessages: () => set(() => ({ chatMessages: [] })),
 
+      addEmergencyContact: (contact) =>
+        set((state) => ({ emergencyContacts: [...state.emergencyContacts, contact] })),
+      updateEmergencyContact: (id, updates) =>
+        set((state) => ({
+          emergencyContacts: state.emergencyContacts.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+        })),
+      removeEmergencyContact: (id) =>
+        set((state) => ({ emergencyContacts: state.emergencyContacts.filter((c) => c.id !== id) })),
+
       setFamilyName: (name) => set(() => ({ familyName: name })),
     }),
     {
@@ -315,6 +339,7 @@ export const useFamilyStore = create<FamilyStore>()(
         vaccinations: state.vaccinations,
         uploadedDocs: state.uploadedDocs,
         chatMessages: state.chatMessages,
+        emergencyContacts: state.emergencyContacts,
         onboardingComplete: state.onboardingComplete,
       }),
     }

@@ -68,7 +68,7 @@ export function Sidebar() {
             }}
           >
             {/* Header */}
-            <div className="px-5 pt-6 pb-4 flex items-center justify-between">
+            <div className="px-5 pb-4 flex items-center justify-between" style={{ paddingTop: "max(24px, env(safe-area-inset-top))" }}>
               <div>
                 <h2 className="text-lg font-semibold text-white tracking-tight">Nova Health</h2>
                 <div className="flex items-center gap-2 mt-1">

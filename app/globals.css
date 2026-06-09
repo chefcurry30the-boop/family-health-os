@@ -66,9 +66,7 @@
   /* --- Radius --- */
   --r-sm: 10px; --r-md: 16px; --r-lg: 22px; --r-xl: 30px; --r-2xl: 40px;
 
-  /* --- Safe Areas --- */
-  --safe-top: 59px;
-  --safe-bottom: 34px;
+  /* --- Safe Areas (use env(safe-area-inset-*) in components) --- */
 }
 
 @layer base {

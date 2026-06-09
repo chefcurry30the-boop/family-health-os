@@ -138,6 +138,7 @@ export default function Onboarding() {
         relation: m.relation.trim(),
         age: Number(m.age) || 0,
         status: m.status,
+        bloodType: "",
         initials,
         avatarGradient: `linear-gradient(135deg, hsl(${Math.random() * 360}, 70%, 60%), hsl(${Math.random() * 360}, 70%, 50%))`,
         records: 0,

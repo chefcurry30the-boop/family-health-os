@@ -70,8 +70,6 @@ export default {
         sp8: "40px",
         sp9: "48px",
         sp10: "64px",
-        "safe-top": "59px",
-        "safe-bottom": "34px",
       },
       keyframes: {
         slideUp: {

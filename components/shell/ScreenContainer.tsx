@@ -21,7 +21,7 @@ export function ScreenContainer({ children, className = "", title, subtitle }: S
       style={{
         scrollbarWidth: "none",
         msOverflowStyle: "none",
-        paddingBottom: "20px",
+        paddingBottom: "max(20px, env(safe-area-inset-bottom))",
       }}
     >
       {(title || subtitle) && (
