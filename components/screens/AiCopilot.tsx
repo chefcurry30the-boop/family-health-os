@@ -138,6 +138,10 @@ interface Message {
   image?: string;
 }
 
+function toStoreMsg(m: Message): import("@/store/useFamilyStore").ChatMessage {
+  return { role: m.role, text: m.text, image: m.image, timestamp: new Date().toISOString() };
+}
+
 function executeToolCalls(text: string): { success: boolean; logs: string[] } {
   const logs: string[] = [];
   const regex = /\[\[TOOL_CALL\]\]([\s\S]*?)\[\[\/TOOL_CALL\]\]/g;
@@ -183,16 +187,23 @@ export default function AiCopilot() {
     removeUploadedDoc,
     familyMembers,
     medications,
+    chatMessages,
+    addChatMessage,
   } = store;
 
   const suggestions = getSuggestions(familyMembers, medications);
 
-  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [ocrStatus, setOcrStatus] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const messages: Message[] = chatMessages.map((m) => ({
+    role: m.role,
+    text: m.text,
+    image: m.image,
+  }));
 
   const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
@@ -200,10 +211,11 @@ export default function AiCopilot() {
     }
   }, []);
 
-  const handleSend = async () => {
-    if (!input.trim() && uploadedDocs.length === 0) return;
+  const handleSend = async (overrideText?: string) => {
+    const text = overrideText || input.trim();
+    if (!text && uploadedDocs.length === 0) return;
 
-    const userMsg = input.trim() || "Please analyze the uploaded document.";
+    const userMsg = text || "Please analyze the uploaded document.";
     const imageDoc = uploadedDocs.find((d) => d.type.startsWith("image/"));
     const textDocs = uploadedDocs.filter((d) => !d.type.startsWith("image/"));
 
@@ -213,8 +225,8 @@ export default function AiCopilot() {
       image: imageDoc?.content,
     };
 
-    setMessages((prev) => [...prev, newUserMsg]);
-    setInput("");
+    addChatMessage(toStoreMsg(newUserMsg));
+    if (!overrideText) setInput("");
     setIsTyping(true);
     requestAnimationFrame(scrollToBottom);
 
@@ -287,28 +299,25 @@ export default function AiCopilot() {
         const fullReply = cleanReply
           ? `${cleanReply}\n\n━━━ Edits applied ━━━\n${confirmation}`
           : `Done. I've updated the data:\n${confirmation}`;
-        setMessages((prev) => [...prev, { role: "assistant", text: fullReply }]);
+        addChatMessage(toStoreMsg({ role: "assistant", text: fullReply }));
       } else if (toolResult.logs.length > 0) {
         // Tools were attempted but some failed
         const failText = toolResult.logs.join("\n");
         const fullReply = cleanReply
           ? `${cleanReply}\n\n⚠ Some edits failed:\n${failText}`
           : `Some edits failed:\n${failText}`;
-        setMessages((prev) => [...prev, { role: "assistant", text: fullReply }]);
+        addChatMessage(toStoreMsg({ role: "assistant", text: fullReply }));
       } else {
         // No tools — normal reply
-        setMessages((prev) => [...prev, { role: "assistant", text: cleanReply || reply }]);
+        addChatMessage(toStoreMsg({ role: "assistant", text: cleanReply || reply }));
       }
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Unknown error";
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: `Sorry, I encountered an error: ${message}. Please check your connection and try again.`,
-        },
-      ]);
+      addChatMessage(toStoreMsg({
+        role: "assistant",
+        text: `Sorry, I encountered an error: ${message}. Please check your connection and try again.`,
+      }));
     } finally {
       setIsTyping(false);
       requestAnimationFrame(scrollToBottom);
@@ -377,20 +386,7 @@ export default function AiCopilot() {
   const openFilePicker = () => fileRef.current?.click();
 
   const handleSuggestionClick = (suggestion: string) => {
-    setMessages((prev) => [...prev, { role: "user", text: suggestion }]);
-    setIsTyping(true);
-    requestAnimationFrame(scrollToBottom);
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: "Based on our records, let me look that up for you.",
-        },
-      ]);
-      setIsTyping(false);
-      requestAnimationFrame(scrollToBottom);
-    }, 800);
+    handleSend(suggestion);
   };
 
   const hasMessages = messages.length > 0;
@@ -610,7 +606,7 @@ export default function AiCopilot() {
             className="flex-1 bg-transparent text-sm text-white placeholder:text-white/40 outline-none"
           />
           <button
-            onClick={handleSend}
+            onClick={() => handleSend()}
             disabled={!input.trim() && uploadedDocs.length === 0}
             className="w-9 h-9 rounded-full bg-medical-blue flex items-center justify-center hover:bg-medical-blue/80 transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-medical-blue/50"
             aria-label="Send message"

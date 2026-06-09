@@ -88,6 +88,13 @@ export interface UploadedDoc {
   uploadedAt: string;
 }
 
+export interface ChatMessage {
+  role: "assistant" | "user";
+  text: string;
+  image?: string;
+  timestamp: string;
+}
+
 interface FamilyStore {
   currentScreen: string;
   prevScreen: string | null;
@@ -107,6 +114,7 @@ interface FamilyStore {
   expenses: Expense[];
   vaccinations: Vaccination[];
   uploadedDocs: UploadedDoc[];
+  chatMessages: ChatMessage[];
 
   // Actions — navigation
   setScreen: (screen: string) => void;
@@ -155,6 +163,11 @@ interface FamilyStore {
   // Actions — docs
   addUploadedDoc: (doc: UploadedDoc) => void;
   removeUploadedDoc: (id: string) => void;
+
+  // Actions — chat
+  addChatMessage: (msg: ChatMessage) => void;
+  setChatMessages: (msgs: ChatMessage[]) => void;
+  clearChatMessages: () => void;
 }
 
 export const useFamilyStore = create<FamilyStore>()(
@@ -177,6 +190,7 @@ export const useFamilyStore = create<FamilyStore>()(
       expenses: [],
       vaccinations: [],
       uploadedDocs: [],
+      chatMessages: [],
 
       setScreen: (screen) =>
         set((state) => ({
@@ -280,6 +294,13 @@ export const useFamilyStore = create<FamilyStore>()(
       removeUploadedDoc: (id) =>
         set((state) => ({ uploadedDocs: state.uploadedDocs.filter((d) => d.id !== id) })),
 
+      addChatMessage: (msg) =>
+        set((state) => ({
+          chatMessages: [...state.chatMessages.slice(-99), msg],
+        })),
+      setChatMessages: (msgs) => set(() => ({ chatMessages: msgs })),
+      clearChatMessages: () => set(() => ({ chatMessages: [] })),
+
       setFamilyName: (name) => set(() => ({ familyName: name })),
     }),
     {
@@ -293,6 +314,7 @@ export const useFamilyStore = create<FamilyStore>()(
         expenses: state.expenses,
         vaccinations: state.vaccinations,
         uploadedDocs: state.uploadedDocs,
+        chatMessages: state.chatMessages,
         onboardingComplete: state.onboardingComplete,
       }),
     }
