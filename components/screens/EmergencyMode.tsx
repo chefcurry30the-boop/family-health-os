@@ -7,6 +7,7 @@ import {
   Siren,
   AlertTriangle,
   Pill,
+  Phone,
   HeartPulse,
   User,
   Activity,
@@ -177,6 +178,16 @@ export default function EmergencyMode() {
             </p>
           </GlassPanel>
         )}
+
+        {/* 911 Call Button */}
+        <a
+          href="tel:911"
+          className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl bg-medical-red hover:bg-medical-red/90 transition-colors text-white font-semibold text-sm mb-6 focus:outline-none focus:ring-2 focus:ring-medical-red/50"
+          aria-label="Call emergency services 911"
+        >
+          <Phone size={18} />
+          Call Emergency Services (911)
+        </a>
 
         {/* Offline indicator */}
         <div className="text-center">

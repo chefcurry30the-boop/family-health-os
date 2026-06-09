@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Sidebar } from "./Sidebar";
 import { useFamilyStore } from "@/store/useFamilyStore";
-import { Siren, PanelLeft } from "lucide-react";
+import { ArrowLeft, Phone, Siren, PanelLeft } from "lucide-react";
 
 interface AppShellProps {
   children: ReactNode;
@@ -14,7 +14,13 @@ interface AppShellProps {
 export function AppShell({ children, showNav = true }: AppShellProps) {
   const { isEmergencyMode, familyMembers, toggleSidebar, toggleEmergencyMode, currentScreen } = useFamilyStore();
 
-  const showEmergencyButton = showNav && !isEmergencyMode && currentScreen === "dashboard";
+  const closeEmergency = () => {
+    const store = useFamilyStore.getState();
+    store.toggleEmergencyMode(false);
+  };
+
+  const isEmergencyScreen = currentScreen === "emergency";
+  const showEmergencyButton = showNav && !isEmergencyMode && !isEmergencyScreen;
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-black p-4 md:p-8">
@@ -96,6 +102,14 @@ export function AppShell({ children, showNav = true }: AppShellProps) {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
+              <button
+                onClick={closeEmergency}
+                className="absolute top-5 left-5 flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors z-10"
+              >
+                <ArrowLeft size={16} />
+                Back
+              </button>
+
               <div className="flex-1 flex flex-col items-center justify-center">
                 <div className="w-28 h-28 rounded-full bg-medical-red/10 flex items-center justify-center mb-6 anim-emergency-pulse">
                   <div className="w-20 h-20 rounded-full bg-medical-red/20 flex items-center justify-center">
@@ -138,6 +152,7 @@ export function AppShell({ children, showNav = true }: AppShellProps) {
                             {member.relation} · {member.age} yrs · {member.conditions.join(", ") || "No conditions"}
                           </p>
                         </div>
+                        <Phone size={18} className="text-white/50" />
                       </button>
                     ))
                   ) : (
@@ -145,6 +160,13 @@ export function AppShell({ children, showNav = true }: AppShellProps) {
                   )}
                 </div>
               </div>
+
+              <button
+                className="text-sm text-white/50 hover:text-white/80 transition-colors pb-4"
+                onClick={closeEmergency}
+              >
+                Tap to exit emergency mode
+              </button>
             </motion.div>
           )}
         </div>

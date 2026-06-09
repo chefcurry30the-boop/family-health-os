@@ -16,24 +16,19 @@ import {
   X,
 } from "lucide-react";
 
-const allNavItems = [
-  { icon: Home, label: "Dashboard", screen: "dashboard" as const, adminOnly: false },
-  { icon: Heart, label: "Family", screen: "timeline" as const, adminOnly: true },
-  { icon: Pill, label: "Medications", screen: "medications" as const, adminOnly: true },
-  { icon: Shield, label: "Vaccinations", screen: "vaccinations" as const, adminOnly: true },
-  { icon: Stethoscope, label: "Health Journal", screen: "journal" as const, adminOnly: false },
-  { icon: ClipboardList, label: "Visits", screen: "visit-prep" as const, adminOnly: true },
-  { icon: Wallet, label: "Expenses", screen: "expenses" as const, adminOnly: true },
-  { icon: Sparkles, label: "AI Copilot", screen: "copilot" as const, adminOnly: false },
+const navItems = [
+  { icon: Home, label: "Dashboard", screen: "dashboard" as const },
+  { icon: Heart, label: "Family", screen: "timeline" as const },
+  { icon: Pill, label: "Medications", screen: "medications" as const },
+  { icon: Shield, label: "Vaccinations", screen: "vaccinations" as const },
+  { icon: Stethoscope, label: "Health Journal", screen: "journal" as const },
+  { icon: ClipboardList, label: "Visits", screen: "visit-prep" as const },
+  { icon: Wallet, label: "Expenses", screen: "expenses" as const },
+  { icon: Sparkles, label: "AI Copilot", screen: "copilot" as const },
 ];
 
 export function Sidebar() {
-  const { currentScreen, setScreen, sidebarOpen, toggleSidebar, familyMembers, currentUserId } = useFamilyStore();
-
-  const currentUser = familyMembers.find((m) => m.id === currentUserId);
-  const isAdmin = currentUser?.role === "admin";
-
-  const navItems = allNavItems.filter((item) => isAdmin || !item.adminOnly);
+  const { currentScreen, setScreen, sidebarOpen, toggleSidebar, familyMembers } = useFamilyStore();
 
   const handleNav = (screen: string) => {
     setScreen(screen);
@@ -77,25 +72,13 @@ export function Sidebar() {
               <div>
                 <h2 className="text-lg font-semibold text-white tracking-tight">Nova Health</h2>
                 <div className="flex items-center gap-2 mt-1">
-                  {isAdmin ? (
-                    <span className="text-[11px] text-white/50">
-                      {memberCount} {memberCount === 1 ? "member" : "members"}
-                    </span>
-                  ) : (
-                    <span className="text-[11px] text-white/50">
-                      {currentUser?.name || "Member"}
-                    </span>
-                  )}
-                  {isAdmin && criticalCount > 0 && (
+                  <span className="text-[11px] text-white/50">
+                    {memberCount} {memberCount === 1 ? "member" : "members"}
+                  </span>
+                  {criticalCount > 0 && (
                     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-medical-red/15 text-[10px] text-medical-red font-medium">
                       <span className="w-1.5 h-1.5 rounded-full bg-medical-red animate-pulse" />
                       {criticalCount} critical
-                    </span>
-                  )}
-                  {!isAdmin && currentUser?.status === "critical" && (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-medical-red/15 text-[10px] text-medical-red font-medium">
-                      <span className="w-1.5 h-1.5 rounded-full bg-medical-red animate-pulse" />
-                      Critical
                     </span>
                   )}
                 </div>

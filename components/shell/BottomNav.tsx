@@ -30,7 +30,6 @@ const rightItems = [
 export function BottomNav() {
   const { currentScreen, setScreen, goBack, isEmergencyMode } = useFamilyStore();
   const isEmergencyScreen = currentScreen === "emergency";
-  const isDashboard = currentScreen === "dashboard";
 
   return (
     <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-[390px]">
@@ -60,7 +59,7 @@ export function BottomNav() {
             >
               <ArrowLeft size={20} className="text-white" />
             </motion.button>
-          ) : isDashboard ? (
+          ) : (
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => setScreen("emergency")}
@@ -69,8 +68,6 @@ export function BottomNav() {
             >
               <Siren size={20} className="text-white" />
             </motion.button>
-          ) : (
-            <div className="w-12 h-12" />
           )}
         </div>
 

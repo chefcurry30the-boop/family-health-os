@@ -25,7 +25,6 @@ export default function FamilyDashboard() {
   const {
     familyMembers,
     familyName,
-    currentUserId,
     setSelectedMember,
     openModal,
     medications,
@@ -33,9 +32,6 @@ export default function FamilyDashboard() {
     timelineEvents,
     expenses,
   } = useFamilyStore();
-
-  const currentUser = familyMembers.find((m) => m.id === currentUserId);
-  const isAdmin = currentUser?.role === "admin";
 
   const monitored = familyMembers.filter((m) => m.status === "monitored").length;
   const healthy = familyMembers.filter((m) => m.status === "healthy").length;
@@ -47,13 +43,12 @@ export default function FamilyDashboard() {
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
 
   const hasData = familyMembers.length > 0;
-  const displayMembers = isAdmin ? familyMembers : familyMembers.filter((m) => m.id === currentUserId);
 
   return (
     <ScreenContainer title={hasData ? familyName : "Nova Health"} subtitle={hasData ? `${familyMembers.length} family members tracked` : "Your family's health hub"}>
       <div className="px-5 pb-6">
         {/* Quick Stats Row */}
-        {hasData && isAdmin && (
+        {hasData && (
           <div className="grid grid-cols-4 gap-2 mb-6">
             {[
               {
@@ -104,7 +99,7 @@ export default function FamilyDashboard() {
         )}
 
         {/* Health Overview */}
-        {hasData && isAdmin && (
+        {hasData && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -146,7 +141,7 @@ export default function FamilyDashboard() {
         )}
 
         {/* Upcoming Events */}
-        {hasData && isAdmin && upcomingEvents.length > 0 && (
+        {hasData && upcomingEvents.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -182,11 +177,9 @@ export default function FamilyDashboard() {
         {/* Members List */}
         <div className="space-y-3">
           {hasData && (
-            <h3 className="text-sm font-semibold text-white/90 mb-2.5 px-0.5">
-              {isAdmin ? "Family Members" : "My Profile"}
-            </h3>
+            <h3 className="text-sm font-semibold text-white/90 mb-2.5 px-0.5">Family Members</h3>
           )}
-          {displayMembers.map((member, i) => (
+          {familyMembers.map((member, i) => (
             <motion.button
               key={member.id}
               className="w-full text-left"
