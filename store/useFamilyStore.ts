@@ -7,6 +7,7 @@ export interface FamilyMember {
   relation: string;
   age: number;
   status: "healthy" | "monitored" | "critical";
+  role: "admin" | "member";
   initials: string;
   avatarGradient: string;
   records: number;
@@ -97,6 +98,7 @@ interface FamilyStore {
   onboardingComplete: boolean;
   isEmergencyMode: boolean;
   sidebarOpen: boolean;
+  currentUserId: string | null;
 
   // Editable data
   familyName: string;
@@ -117,6 +119,7 @@ interface FamilyStore {
   setSelectedMember: (id: string | null) => void;
   toggleEmergencyMode: (value?: boolean) => void;
   toggleSidebar: (value?: boolean) => void;
+  setCurrentUser: (id: string | null) => void;
 
   // Actions — family
   setFamilyName: (name: string) => void;
@@ -166,6 +169,7 @@ export const useFamilyStore = create<FamilyStore>()(
       onboardingComplete: false,
       isEmergencyMode: false,
       sidebarOpen: false,
+      currentUserId: null,
       familyName: "",
 
       familyMembers: [],
@@ -212,6 +216,8 @@ export const useFamilyStore = create<FamilyStore>()(
         set((state) => ({
           sidebarOpen: value !== undefined ? value : !state.sidebarOpen,
         })),
+
+      setCurrentUser: (id) => set({ currentUserId: id }),
 
       setFamilyMembers: (members) =>
         set(() => ({ familyMembers: members })),

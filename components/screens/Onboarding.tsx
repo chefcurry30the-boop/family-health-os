@@ -82,6 +82,7 @@ export default function Onboarding() {
     setOnboardingComplete,
     setFamilyMembers,
     setFamilyName,
+    setCurrentUser,
   } = useFamilyStore();
 
   const isLastIntro = currentSlide === introSlides.length - 1;
@@ -125,7 +126,7 @@ export default function Onboarding() {
     const validMembers = members.filter(
       (m) => m.name.trim() && m.relation.trim()
     );
-    const newFamilyMembers = validMembers.map((m) => {
+    const newFamilyMembers = validMembers.map((m, index) => {
       const initials = m.name
         .split(" ")
         .map((n) => n[0])
@@ -138,6 +139,7 @@ export default function Onboarding() {
         relation: m.relation.trim(),
         age: Number(m.age) || 0,
         status: m.status,
+        role: (index === 0 ? "admin" : "member") as "admin" | "member",
         initials,
         avatarGradient: `linear-gradient(135deg, hsl(${Math.random() * 360}, 70%, 60%), hsl(${Math.random() * 360}, 70%, 50%))`,
         records: 0,
@@ -150,6 +152,9 @@ export default function Onboarding() {
     });
     setFamilyName(familyName.trim() || "My Family");
     setFamilyMembers(newFamilyMembers);
+    if (newFamilyMembers.length > 0) {
+      setCurrentUser(newFamilyMembers[0].id);
+    }
     setOnboardingComplete(true);
   };
 
