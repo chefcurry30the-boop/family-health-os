@@ -16,6 +16,9 @@ import {
   MessageSquare,
 } from "lucide-react";
 
+const OLLAMA_BASE = "http://localhost:11434";
+const OLLAMA_MODEL = "gemini-3-flash-preview:cloud";
+
 function getSuggestions(
   familyMembers: { name: string; relation: string }[],
   meds: { name: string; memberName: string }[]
@@ -67,10 +70,10 @@ function buildSystemContext(state: ReturnType<typeof useFamilyStore.getState>) {
     .join("\n");
 
   const docs = state.uploadedDocs
-    .map(
-      (d) =>
-        `- ${d.name} (${d.type}) uploaded ${d.uploadedAt}. Content: ${d.content.slice(0, 500)}${d.content.length > 500 ? "..." : ""}`
-    )
+    .map((d) => {
+      const preview = d.ocrText || d.content.slice(0, 500);
+      return `- ${d.name} (${d.type}) uploaded ${d.uploadedAt}. Content: ${preview}${preview.length > 500 ? "..." : ""}`;
+    })
     .join("\n");
 
   return `You are Nova Health OS AI Copilot. You help users understand their family health data. Be concise, accurate, and caring.
@@ -109,6 +112,7 @@ export default function AiCopilot() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [ocrStatus, setOcrStatus] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -137,8 +141,6 @@ export default function AiCopilot() {
     requestAnimationFrame(scrollToBottom);
 
     try {
-      const apiKey =
-        "389b33bc433a4a0191565cc9efea295f.27M66TfkcW8YkI8wk541qYcf";
       const systemContent = buildSystemContext(useFamilyStore.getState());
 
       const contentParts: Array<{
@@ -159,40 +161,33 @@ export default function AiCopilot() {
         });
       });
 
-      const res = await fetch(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-            "HTTP-Referer":
-              typeof window !== "undefined" ? window.location.href : "",
-            "X-Title": "Nova Health OS",
-          },
-          body: JSON.stringify({
-            model: "gemini-3-flash-preview:cloud",
-            messages: [
-              { role: "system", content: systemContent },
-              ...messages.slice(-6).map((m) => ({
-                role: m.role,
-                content: m.image
-                  ? [
-                      { type: "text" as const, text: m.text },
-                      {
-                        type: "image_url" as const,
-                        image_url: { url: m.image },
-                      },
-                    ]
-                  : m.text,
-              })),
-              { role: "user", content: contentParts },
-            ],
-            temperature: 0.7,
-            max_tokens: 1024,
-          }),
-        }
-      );
+      const res = await fetch(`${OLLAMA_BASE}/v1/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: OLLAMA_MODEL,
+          messages: [
+            { role: "system", content: systemContent },
+            ...messages.slice(-6).map((m) => ({
+              role: m.role,
+              content: m.image
+                ? [
+                    { type: "text" as const, text: m.text },
+                    {
+                      type: "image_url" as const,
+                      image_url: { url: m.image },
+                    },
+                  ]
+                : m.text,
+            })),
+            { role: "user", content: contentParts },
+          ],
+          temperature: 0.7,
+          max_tokens: 1024,
+        }),
+      });
 
       if (!res.ok) {
         const err = await res.text();
@@ -223,15 +218,40 @@ export default function AiCopilot() {
   const handleFile = async (file: File) => {
     if (file.type.startsWith("image/")) {
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async () => {
         const base64 = reader.result as string;
+        const docId = String(Date.now());
         addUploadedDoc({
-          id: String(Date.now()),
+          id: docId,
           name: file.name,
           type: file.type,
           content: base64,
           uploadedAt: new Date().toISOString(),
         });
+
+        // Run Tesseract OCR in background
+        setOcrStatus(`Reading ${file.name}...`);
+        try {
+          const tesseract = await import("tesseract.js");
+          const result = await tesseract.recognize(base64, "eng");
+          const ocrText = result.data.text.trim();
+          if (ocrText) {
+            // Update the doc with OCR text
+            useFamilyStore.setState((state) => ({
+              uploadedDocs: state.uploadedDocs.map((d) =>
+                d.id === docId ? { ...d, ocrText } : d
+              ),
+            }));
+            setOcrStatus(`OCR complete · ${ocrText.slice(0, 40)}...`);
+            setTimeout(() => setOcrStatus(null), 3000);
+          } else {
+            setOcrStatus("No text detected in image");
+            setTimeout(() => setOcrStatus(null), 3000);
+          }
+        } catch {
+          setOcrStatus("OCR failed · using vision only");
+          setTimeout(() => setOcrStatus(null), 3000);
+        }
       };
       reader.readAsDataURL(file);
     } else if (file.type === "text/plain" || file.name.endsWith(".txt")) {
@@ -298,10 +318,14 @@ export default function AiCopilot() {
           <span className="text-sm font-semibold text-white">
             Upload Document (OCR)
           </span>
-          <span className="text-xs text-white/50">
-            Images, PDFs, TXT
-          </span>
+          <span className="text-xs text-white/50">Images, PDFs, TXT</span>
         </button>
+
+        {ocrStatus && (
+          <p className="text-[11px] text-medical-blue mt-1.5 text-center animate-pulse">
+            {ocrStatus}
+          </p>
+        )}
 
         {uploadedDocs.length > 0 && (
           <div className="flex gap-2 overflow-x-auto pb-2 mt-2 scrollbar-hide">
@@ -316,6 +340,11 @@ export default function AiCopilot() {
                   <FileText size={12} className="text-medical-teal" />
                 )}
                 <span className="max-w-[100px] truncate">{doc.name}</span>
+                {doc.ocrText && (
+                  <span className="text-[9px] text-medical-green bg-medical-green/10 rounded-full px-1.5 py-0.5">
+                    OCR
+                  </span>
+                )}
                 <button
                   onClick={() => removeUploadedDoc(doc.id)}
                   className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center hover:bg-medical-red/30 transition-colors"
@@ -492,7 +521,7 @@ export default function AiCopilot() {
         <div className="flex items-center justify-center gap-1 mt-2">
           <Sparkles size={10} className="text-white/30" />
           <span className="text-[10px] text-white/30">
-            AI reads documents using vision OCR · Data stays in your browser
+            Local AI via Ollama · Tesseract.js OCR · Data stays in your browser
           </span>
         </div>
       </div>

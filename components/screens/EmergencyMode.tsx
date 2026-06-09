@@ -7,7 +7,6 @@ import {
   Siren,
   AlertTriangle,
   Pill,
-  ArrowLeft,
   Phone,
   HeartPulse,
   User,
@@ -15,22 +14,12 @@ import {
 } from "lucide-react";
 
 export default function EmergencyMode() {
-  const { familyMembers, goBack } = useFamilyStore();
+  const { familyMembers } = useFamilyStore();
   const primary = familyMembers[0];
 
   return (
     <ScreenContainer className="emergency-bg">
       <div className="px-5 pt-6 pb-6">
-        {/* Back button */}
-        <button
-          onClick={goBack}
-          className="flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors mb-6 focus:outline-none focus:ring-2 focus:ring-medical-red/50 rounded-lg px-1 -ml-1"
-          aria-label="Go back"
-        >
-          <ArrowLeft size={18} />
-          <span className="font-medium">Back</span>
-        </button>
-
         {/* Emergency Header */}
         <div className="text-center mb-8">
           <div className="relative mx-auto mb-5 w-24 h-24 flex items-center justify-center">

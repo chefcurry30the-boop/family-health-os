@@ -84,6 +84,7 @@ export interface UploadedDoc {
   name: string;
   type: string;
   content: string; // extracted text or base64 for images
+  ocrText?: string; // extracted text from images via Tesseract.js
   uploadedAt: string;
 }
 

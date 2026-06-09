@@ -20,6 +20,9 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 
+const OLLAMA_BASE = "http://localhost:11434";
+const OLLAMA_MODEL = "gemini-3-flash-preview:cloud";
+
 type Tab = "profile" | "ai";
 
 function buildMemberSystemContext(member: ReturnType<typeof useFamilyStore.getState>["familyMembers"][number]) {
@@ -40,6 +43,7 @@ export function FolderDetailModal() {
   const [messages, setMessages] = useState<{ role: "assistant" | "user"; text: string; image?: string }[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [ocrStatus, setOcrStatus] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   if (!member) return null;
@@ -52,7 +56,6 @@ export function FolderDetailModal() {
     setIsTyping(true);
 
     try {
-      const apiKey = "389b33bc433a4a0191565cc9efea295f.27M66TfkcW8YkI8wk541qYcf";
       const systemContent = buildMemberSystemContext(member);
 
       const contentParts: Array<{ type: string; text?: string; image_url?: { url: string } }> = [{ type: "text", text: userMsg }];
@@ -61,16 +64,13 @@ export function FolderDetailModal() {
         contentParts.push({ type: "image_url", image_url: { url: imageDoc.content } });
       }
 
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      const res = await fetch(`${OLLAMA_BASE}/v1/chat/completions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-          "HTTP-Referer": typeof window !== "undefined" ? window.location.href : "",
-          "X-Title": "Nova Health OS",
         },
         body: JSON.stringify({
-          model: "gemini-3-flash-preview:cloud",
+          model: OLLAMA_MODEL,
           messages: [
             { role: "system", content: systemContent },
             ...messages.slice(-6).map((m) => ({
@@ -108,15 +108,39 @@ export function FolderDetailModal() {
   const handleFile = async (file: File) => {
     if (file.type.startsWith("image/")) {
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async () => {
         const base64 = reader.result as string;
+        const docId = String(Date.now());
         addUploadedDoc({
-          id: String(Date.now()),
+          id: docId,
           name: file.name,
           type: file.type,
           content: base64,
           uploadedAt: new Date().toISOString(),
         });
+
+        // Run Tesseract OCR in background
+        setOcrStatus(`Reading ${file.name}...`);
+        try {
+          const tesseract = await import("tesseract.js");
+          const result = await tesseract.recognize(base64, "eng");
+          const ocrText = result.data.text.trim();
+          if (ocrText) {
+            useFamilyStore.setState((state) => ({
+              uploadedDocs: state.uploadedDocs.map((d) =>
+                d.id === docId ? { ...d, ocrText } : d
+              ),
+            }));
+            setOcrStatus(`OCR complete · ${ocrText.slice(0, 40)}...`);
+            setTimeout(() => setOcrStatus(null), 3000);
+          } else {
+            setOcrStatus("No text detected in image");
+            setTimeout(() => setOcrStatus(null), 3000);
+          }
+        } catch {
+          setOcrStatus("OCR failed · using vision only");
+          setTimeout(() => setOcrStatus(null), 3000);
+        }
       };
       reader.readAsDataURL(file);
     } else if (file.type === "text/plain" || file.name.endsWith(".txt")) {
@@ -370,6 +394,11 @@ export function FolderDetailModal() {
                       <span className="text-xs font-medium text-white/90">Upload Document (OCR)</span>
                       <span className="text-[10px] text-white/60">Images, PDFs, TXT</span>
                     </button>
+                    {ocrStatus && (
+                      <p className="text-[11px] text-medical-blue mt-1.5 text-center animate-pulse">
+                        {ocrStatus}
+                      </p>
+                    )}
                     {uploadedDocs.length > 0 && (
                       <div className="flex gap-2 overflow-x-auto mt-2">
                         {uploadedDocs.map((doc) => (
@@ -379,6 +408,11 @@ export function FolderDetailModal() {
                           >
                             {doc.type.startsWith("image/") ? <ImageIcon size={12} /> : <FileText size={12} />}
                             <span className="max-w-[80px] truncate">{doc.name}</span>
+                            {doc.ocrText && (
+                              <span className="text-[9px] text-medical-green bg-medical-green/10 rounded-full px-1.5 py-0.5">
+                                OCR
+                              </span>
+                            )}
                             <button
                               onClick={() => removeUploadedDoc(doc.id)}
                               className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center hover:bg-red-emergency/30 transition-colors"
