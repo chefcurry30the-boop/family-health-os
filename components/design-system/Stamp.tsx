@@ -13,10 +13,10 @@ export function Stamp({
   className = "",
 }: StampProps) {
   const colors = {
-    green: "border-green-hospital/60 text-green-hospital",
-    red: "border-red-emergency/60 text-red-emergency",
-    blue: "border-blue-accent/60 text-blue-accent",
-    amber: "border-amber-warn/60 text-amber-warn",
+    green: "border-medical-green/60 text-medical-green",
+    red: "border-medical-red/60 text-medical-red",
+    blue: "border-medical-blue/60 text-medical-blue",
+    amber: "border-medical-amber/60 text-medical-amber",
   };
 
   return (

@@ -5,14 +5,28 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ScreenContainer } from "@/components/shell/ScreenContainer";
 import { StickyHeader } from "@/components/shell/StickyHeader";
 import { GlassPanel } from "@/components/design-system/GlassPanel";
-import { PrescriptionPad } from "@/components/design-system/PrescriptionPad";
 import { Avatar } from "@/components/design-system/Avatar";
 import { useFamilyStore } from "@/store/useFamilyStore";
-import { Stethoscope, CheckSquare, Square, Clock, FileText, Plus, X } from "lucide-react";
+import {
+  Stethoscope,
+  CheckSquare,
+  Square,
+  Clock,
+  FileText,
+  Plus,
+  X,
+  ClipboardList,
+} from "lucide-react";
 
-type ChecklistMap = Record<string, { items: { id: string; text: string; checked: boolean }[] }>;
+type ChecklistItem = {
+  id: string;
+  text: string;
+  checked: boolean;
+};
 
-function makeDefaultChecklist(memberId: string, name: string): { items: { id: string; text: string; checked: boolean }[] } {
+type ChecklistMap = Record<string, { items: ChecklistItem[] }>;
+
+function makeDefaultChecklist(memberId: string, name: string): { items: ChecklistItem[] } {
   return {
     items: [
       { id: `${memberId}-1`, text: `Prepare questions for ${name}'s visit`, checked: false },
@@ -40,8 +54,12 @@ export default function DoctorVisitPrep() {
 
   const checkedCount = currentList.items.filter((i) => i.checked).length;
   const totalCount = currentList.items.length;
+  const progressPct = totalCount > 0 ? (checkedCount / totalCount) * 100 : 0;
 
-  const updateList = (memberId: string, updater: (prev: { items: { id: string; text: string; checked: boolean }[] }) => { items: { id: string; text: string; checked: boolean }[] }) => {
+  const updateList = (
+    memberId: string,
+    updater: (prev: { items: ChecklistItem[] }) => { items: ChecklistItem[] }
+  ) => {
     setLists((prev) => ({
       ...prev,
       [memberId]: updater(prev[memberId] || makeDefaultChecklist(memberId, activeMember?.name || "")),
@@ -80,13 +98,14 @@ export default function DoctorVisitPrep() {
         <StickyHeader className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Stethoscope size={18} className="text-white/70" />
-            <span className="text-sm font-medium text-white/90">Visit Checklists</span>
+            <span className="text-sm font-medium text-white">Visit Checklists</span>
           </div>
         </StickyHeader>
         <div className="px-5 pb-6">
           <GlassPanel className="p-6 text-center">
-            <p className="text-sm text-white/90 mb-2">No family members yet.</p>
-            <p className="text-xs text-white/70">Complete onboarding to create visit checklists.</p>
+            <ClipboardList size={32} className="text-white/30 mx-auto mb-3" />
+            <p className="text-sm text-white font-medium mb-1">No family members yet</p>
+            <p className="text-xs text-white/50">Complete onboarding to create visit checklists.</p>
           </GlassPanel>
         </div>
       </ScreenContainer>
@@ -98,7 +117,7 @@ export default function DoctorVisitPrep() {
       <StickyHeader className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Stethoscope size={18} className="text-white/70" />
-          <span className="text-sm font-medium text-white/90">Visit Checklists</span>
+          <span className="text-sm font-medium text-white">Visit Checklists</span>
         </div>
       </StickyHeader>
 
@@ -109,9 +128,10 @@ export default function DoctorVisitPrep() {
             <button
               key={m.id}
               onClick={() => setActiveMemberId(m.id)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl shrink-0 transition-colors ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl shrink-0 transition-all ${
                 activeMember?.id === m.id ? "glass-strong" : "bg-white/5 hover:bg-white/10"
               }`}
+              aria-label={`Select ${m.name}`}
             >
               <Avatar initials={m.initials} gradient={m.avatarGradient} size="sm" />
               <span className="text-xs font-medium text-white">{m.name}</span>
@@ -120,60 +140,74 @@ export default function DoctorVisitPrep() {
         </div>
 
         {/* Progress */}
-        <GlassPanel className="p-4 mb-4">
+        <GlassPanel className="p-4 mb-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Clock size={14} className="text-white/60" />
-              <span className="text-xs text-white/90">{activeMember.name} — Next Visit</span>
+              <Clock size={14} className="text-white/50" />
+              <span className="text-xs text-white">{activeMember.name} — Next Visit</span>
             </div>
-            <span className="text-xs text-white/90">
+            <span className="text-xs text-white/70">
               {checkedCount}/{totalCount}
             </span>
           </div>
           <div className="h-2 rounded-full bg-white/10 overflow-hidden">
             <motion.div
-              className="h-full rounded-full bg-blue-accent"
-              animate={{ width: totalCount > 0 ? `${(checkedCount / totalCount) * 100}%` : "0%" }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="h-full rounded-full bg-medical-blue"
+              animate={{ width: `${progressPct}%` }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             />
           </div>
         </GlassPanel>
 
         {/* Checklist */}
-        <PrescriptionPad header="Visit Prep Checklist">
+        <GlassPanel variant="strong" className="p-4 mb-5">
+          <div className="flex items-center gap-2 mb-3">
+            <ClipboardList size={14} className="text-white/50" />
+            <span className="text-xs font-medium text-white">Visit Prep Checklist</span>
+          </div>
+
           <div className="space-y-2">
-            {currentList.items.map((item, i) => (
-              <motion.div
-                key={item.id}
-                className="flex items-start gap-2 group"
-                initial={{ opacity: 0, x: -5 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.06 }}
-              >
-                <button className="mt-0.5 shrink-0" onClick={() => toggleCheck(item.id)}>
-                  {item.checked ? (
-                    <CheckSquare size={16} className="text-green-hospital" />
-                  ) : (
-                    <Square size={16} className="text-[#C0392B]/40" />
-                  )}
-                </button>
-                <button
-                  onClick={() => toggleCheck(item.id)}
-                  className={`flex-1 text-left text-sm leading-relaxed ${
-                    item.checked ? "text-white/60 line-through" : "text-[#5D4E37]"
-                  }`}
+            <AnimatePresence initial={false}>
+              {currentList.items.map((item, i) => (
+                <motion.div
+                  key={item.id}
+                  className="flex items-start gap-3 group"
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 8, height: 0, marginBottom: 0 }}
+                  transition={{ delay: i * 0.05, duration: 0.25 }}
                 >
-                  {item.text}
-                </button>
-                <button
-                  onClick={() => removeItem(item.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                  aria-label="Remove item"
-                >
-                  <X size={14} className="text-white/60" />
-                </button>
-              </motion.div>
-            ))}
+                  <button
+                    className="mt-0.5 shrink-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-medical-blue/60"
+                    onClick={() => toggleCheck(item.id)}
+                    aria-label={item.checked ? "Uncheck item" : "Check item"}
+                  >
+                    {item.checked ? (
+                      <CheckSquare size={18} className="text-medical-green" />
+                    ) : (
+                      <Square size={18} className="text-white/30" />
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => toggleCheck(item.id)}
+                    className={`flex-1 text-left text-sm leading-relaxed rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-medical-blue/60 ${
+                      item.checked ? "text-white/50 line-through" : "text-white"
+                    }`}
+                  >
+                    {item.text}
+                  </button>
+
+                  <button
+                    onClick={() => removeItem(item.id)}
+                    className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity shrink-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-medical-red/60 p-0.5"
+                    aria-label="Remove item"
+                  >
+                    <X size={14} className="text-white/50 hover:text-medical-red" />
+                  </button>
+                </motion.div>
+              ))}
+            </AnimatePresence>
 
             {/* Add item form */}
             <AnimatePresence>
@@ -192,12 +226,13 @@ export default function DoctorVisitPrep() {
                         if (e.key === "Enter") addItem();
                       }}
                       placeholder="New checklist item..."
-                      className="flex-1 bg-transparent text-sm text-white placeholder:text-white/60 outline-none"
+                      className="flex-1 bg-white/5 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 outline-none focus-visible:ring-2 focus-visible:ring-medical-blue/60"
                       autoFocus
                     />
                     <button
                       onClick={addItem}
-                      className="px-2 py-1 rounded-lg bg-blue-accent text-white text-xs font-medium hover:bg-blue-accent/80 transition-colors"
+                      className="px-3 py-2 rounded-xl bg-medical-blue text-white text-xs font-medium hover:bg-medical-blue/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-medical-blue/60"
+                      aria-label="Add new item"
                     >
                       Add
                     </button>
@@ -208,19 +243,20 @@ export default function DoctorVisitPrep() {
 
             <button
               onClick={() => setShowForm((s) => !s)}
-              className="flex items-center gap-1 text-xs text-white/70 hover:text-white/90 transition-colors pt-1"
+              className="flex items-center gap-1 text-xs text-white/50 hover:text-white/70 transition-colors pt-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-medical-blue/60"
+              aria-label={showForm ? "Cancel adding item" : "Add checklist item"}
             >
               {showForm ? <X size={14} /> : <Plus size={14} />}
               {showForm ? "Cancel" : "Add item"}
             </button>
           </div>
-        </PrescriptionPad>
+        </GlassPanel>
 
         {/* Notes */}
-        <GlassPanel className="mt-4 p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <FileText size={14} className="text-white/60" />
-            <span className="text-xs font-medium text-white/90">Visit Notes</span>
+        <GlassPanel className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <FileText size={14} className="text-white/50" />
+            <span className="text-xs font-medium text-white">Visit Notes</span>
           </div>
           <textarea
             value={notes[activeMember.id] || ""}
@@ -231,7 +267,7 @@ export default function DoctorVisitPrep() {
               }))
             }
             placeholder="Add notes about the upcoming visit..."
-            className="w-full bg-transparent text-sm text-white placeholder:text-white/60 outline-none resize-none h-16"
+            className="w-full bg-white/5 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 outline-none resize-none h-20 focus-visible:ring-2 focus-visible:ring-medical-blue/60"
           />
         </GlassPanel>
       </div>

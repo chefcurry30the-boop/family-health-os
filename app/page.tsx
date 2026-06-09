@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AppShell } from "@/components/shell/AppShell";
 import { useFamilyStore } from "@/store/useFamilyStore";
@@ -13,6 +14,7 @@ import SymptomJournal from "@/components/screens/SymptomJournal";
 import DoctorVisitPrep from "@/components/screens/DoctorVisitPrep";
 import ExpenseTracker from "@/components/screens/ExpenseTracker";
 import EmergencyMode from "@/components/screens/EmergencyMode";
+import SettingsScreen from "@/components/screens/Settings";
 import { FolderDetailModal } from "@/components/modals/FolderDetailModal";
 import { useTripleTap } from "@/hooks/useTripleTap";
 
@@ -27,11 +29,25 @@ const screens: Record<string, React.ComponentType> = {
   "visit-prep": DoctorVisitPrep,
   expenses: ExpenseTracker,
   emergency: EmergencyMode,
+  settings: SettingsScreen,
 };
 
 export default function Home() {
-  const { currentScreen, isModalOpen, modalType, onboardingComplete } =
-    useFamilyStore();
+  const store = useFamilyStore();
+  const { currentScreen, isModalOpen, modalType, onboardingComplete } = store;
+
+  // Support ?screen=xxx for deep-linking / screenshots
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const screen = params.get("screen");
+    if (screen && screens[screen]) {
+      store.setScreen(screen);
+      if (!store.onboardingComplete) {
+        store.setOnboardingComplete(true);
+      }
+    }
+  }, []);
 
   // Triple-tap emergency trigger
   useTripleTap(() => {

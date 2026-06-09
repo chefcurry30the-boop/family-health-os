@@ -20,7 +20,7 @@ export function StickyHeader({ children, className = "" }: StickyHeaderProps) {
         backdropFilter: useTransform(blur, (v) => `blur(${v}px)`),
         backgroundColor: useTransform(
           bgOpacity,
-          (v) => `rgba(10, 18, 35, ${v * 0.85})`
+          (v) => `rgba(6, 11, 20, ${v * 0.9})`
         ),
       }}
     >

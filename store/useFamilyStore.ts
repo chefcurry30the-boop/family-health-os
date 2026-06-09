@@ -95,6 +95,7 @@ interface FamilyStore {
   selectedMemberId: string | null;
   onboardingComplete: boolean;
   isEmergencyMode: boolean;
+  sidebarOpen: boolean;
 
   // Editable data
   familyName: string;
@@ -114,6 +115,7 @@ interface FamilyStore {
   setOnboardingComplete: (value: boolean) => void;
   setSelectedMember: (id: string | null) => void;
   toggleEmergencyMode: (value?: boolean) => void;
+  toggleSidebar: (value?: boolean) => void;
 
   // Actions — family
   setFamilyName: (name: string) => void;
@@ -162,6 +164,7 @@ export const useFamilyStore = create<FamilyStore>()(
       selectedMemberId: null,
       onboardingComplete: false,
       isEmergencyMode: false,
+      sidebarOpen: false,
       familyName: "",
 
       familyMembers: [],
@@ -203,6 +206,11 @@ export const useFamilyStore = create<FamilyStore>()(
             currentScreen: next ? "emergency" : state.prevScreen || "dashboard",
           };
         }),
+
+      toggleSidebar: (value) =>
+        set((state) => ({
+          sidebarOpen: value !== undefined ? value : !state.sidebarOpen,
+        })),
 
       setFamilyMembers: (members) =>
         set(() => ({ familyMembers: members })),

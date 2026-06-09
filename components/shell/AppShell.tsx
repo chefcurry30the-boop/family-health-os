@@ -2,9 +2,9 @@
 
 import { ReactNode } from "react";
 import { motion } from "framer-motion";
-import { BottomNav } from "./BottomNav";
+import { Sidebar } from "./Sidebar";
 import { useFamilyStore } from "@/store/useFamilyStore";
-import { ArrowLeft, Phone } from "lucide-react";
+import { ArrowLeft, Phone, Siren, PanelLeft } from "lucide-react";
 
 interface AppShellProps {
   children: ReactNode;
@@ -12,33 +12,44 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, showNav = true }: AppShellProps) {
-  const { isEmergencyMode, familyMembers } = useFamilyStore();
+  const { isEmergencyMode, familyMembers, toggleSidebar, toggleEmergencyMode, currentScreen } = useFamilyStore();
 
   const closeEmergency = () => {
     const store = useFamilyStore.getState();
     store.toggleEmergencyMode(false);
   };
 
+  const isEmergencyScreen = currentScreen === "emergency";
+  const showEmergencyButton = showNav && !isEmergencyMode && !isEmergencyScreen;
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-neutral-900 p-4 md:p-8">
+    <div className="flex items-center justify-center min-h-screen bg-black p-4 md:p-8">
       {/* Phone frame */}
       <motion.div
-        className="relative w-full max-w-[430px] h-[880px] rounded-[60px] overflow-hidden shadow-2xl"
+        className="relative w-full max-w-[430px] h-[880px] rounded-[48px] overflow-hidden"
         style={{
           boxShadow:
-            "0 0 0 12px #1a1a1a, 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 14px #333",
+            "0 0 0 10px #1a1a1a, 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 12px #2a2a2a",
         }}
-        animate={isEmergencyMode ? { boxShadow: "0 0 0 12px #1a1a1a, 0 0 40px rgba(231, 76, 60, 0.6), 0 0 0 14px #e74c3c" } : {}}
+        animate={isEmergencyMode ? { boxShadow: "0 0 0 10px #1a1a1a, 0 0 40px rgba(255,69,58,0.5), 0 0 0 12px #ff453a" } : {}}
         transition={{ duration: 0.3 }}
       >
         {/* Screen content */}
         <div
           className={`relative h-full w-full overflow-hidden flex flex-col ${
-            isEmergencyMode ? "bg-[#7a1e1e]" : "bg-navy-deep"
+            isEmergencyMode ? "bg-[#0c0404]" : "bg-navy-deep"
           }`}
         >
           {/* Status bar */}
           <div className="h-[59px] shrink-0 z-50 flex items-center justify-between px-6 pt-2">
+            <button
+              onClick={() => toggleSidebar()}
+              className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors"
+              aria-label="Open sidebar"
+            >
+              <PanelLeft size={18} />
+              <span className="text-xs font-semibold">Menu</span>
+            </button>
             <span className="text-xs font-semibold text-white/90 font-body">
               9:41
             </span>
@@ -77,95 +88,113 @@ export function AppShell({ children, showNav = true }: AppShellProps) {
 
           {/* Home indicator */}
           <div className="h-[34px] shrink-0 flex items-center justify-center z-50">
-            <div className="w-[134px] h-[5px] rounded-full bg-white/30" />
+            <div className="w-[134px] h-[5px] rounded-full bg-white/20" />
           </div>
+
+          {/* Sidebar */}
+          {showNav && <Sidebar />}
 
           {/* Emergency overlay */}
           {isEmergencyMode && (
             <motion.div
-              className="absolute inset-0 z-40 bg-[#7a1e1e] flex flex-col items-center justify-center text-center p-6"
+              className="absolute inset-0 z-40 flex flex-col text-center p-6 emergency-bg"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
               <button
                 onClick={closeEmergency}
-                className="absolute top-6 left-6 flex items-center gap-1 text-sm text-white/80 hover:text-white transition-colors"
+                className="absolute top-5 left-5 flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors z-10"
               >
                 <ArrowLeft size={16} />
                 Back
               </button>
 
-              <div className="w-24 h-24 rounded-full bg-[#ff4444]/20 flex items-center justify-center mb-6 animate-pulse">
-                <svg
-                  width="48"
-                  height="48"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#ff4444"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+              <div className="flex-1 flex flex-col items-center justify-center">
+                <div className="w-28 h-28 rounded-full bg-medical-red/10 flex items-center justify-center mb-6 anim-emergency-pulse">
+                  <div className="w-20 h-20 rounded-full bg-medical-red/20 flex items-center justify-center">
+                    <Siren size={44} className="text-medical-red" />
+                  </div>
+                </div>
+                <h2
+                  className="text-4xl font-bold text-white mb-2 font-display tracking-tight"
+                  style={{ textShadow: "0 0 30px rgba(255, 69, 58, 0.6)" }}
                 >
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                  <line x1="12" y1="9" x2="12" y2="13" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
-              </div>
-              <h2
-                className="text-4xl font-bold text-white mb-2 font-display"
-                style={{ textShadow: "0 0 20px rgba(255, 68, 68, 0.8)" }}
-              >
-                EMERGENCY
-              </h2>
-              <p className="text-base text-white/90 mb-4">
-                Medical Profile Active
-              </p>
-              <div className="w-full max-w-[320px] space-y-3">
-                {familyMembers.length > 0 ? (
-                  familyMembers.map((member) => (
-                    <button
-                      key={member.id}
-                      className="w-full p-4 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 text-left flex items-center gap-3 hover:bg-white/20 transition-colors"
-                    >
-                      <div
-                        className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-white font-bold text-sm"
-                        style={{ background: member.avatarGradient }}
+                  Emergency
+                </h2>
+                <p className="text-base text-white/80 mb-8">
+                  Medical profile for first responders
+                </p>
+
+                <div className="w-full max-w-[320px] space-y-3">
+                  {familyMembers.length > 0 ? (
+                    familyMembers.map((member) => (
+                      <button
+                        key={member.id}
+                        className="w-full p-4 rounded-2xl text-left flex items-center gap-3 transition-all duration-200 hover:scale-[1.02]"
+                        style={{
+                          background: "rgba(255,255,255,0.06)",
+                          backdropFilter: "blur(20px)",
+                          border: "1px solid rgba(255,255,255,0.10)",
+                        }}
                       >
-                        {member.initials}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">
-                          {member.name}
-                        </p>
-                        <p className="text-xs text-white/70">
-                          {member.relation} · {member.conditions.join(", ") || "No conditions"}
-                        </p>
-                      </div>
-                      <Phone size={20} className="text-white/80" />
-                    </button>
-                  ))
-                ) : (
-                  <p className="text-sm text-white/70">No family members configured.</p>
-                )}
+                        <div
+                          className="w-11 h-11 rounded-full shrink-0 flex items-center justify-center text-white font-bold text-sm"
+                          style={{ background: member.avatarGradient }}
+                        >
+                          {member.initials}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-white truncate">
+                            {member.name}
+                          </p>
+                          <p className="text-xs text-white/60">
+                            {member.relation} · {member.age} yrs · {member.conditions.join(", ") || "No conditions"}
+                          </p>
+                        </div>
+                        <Phone size={18} className="text-white/50" />
+                      </button>
+                    ))
+                  ) : (
+                    <p className="text-sm text-white/50">No family members configured.</p>
+                  )}
+                </div>
               </div>
+
               <button
-                className="mt-6 text-sm text-white/80 hover:text-white transition-colors"
+                className="text-sm text-white/50 hover:text-white/80 transition-colors pb-4"
                 onClick={closeEmergency}
               >
-                Tap to exit
+                Tap to exit emergency mode
               </button>
             </motion.div>
           )}
         </div>
 
         {/* Dynamic Island */}
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
           <div className="w-[120px] h-[35px] rounded-full bg-black" />
         </div>
-      </motion.div>
 
-      {showNav && <BottomNav />}
+        {/* Floating Emergency Button */}
+        {showEmergencyButton && (
+          <motion.button
+            className="absolute bottom-16 right-5 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl"
+            style={{
+              background: "linear-gradient(135deg, #ff453a, #ff375f)",
+              boxShadow: "0 4px 20px rgba(255,69,58,0.5), 0 0 0 4px rgba(255,69,58,0.15)",
+            }}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            whileTap={{ scale: 0.92 }}
+            onClick={() => toggleEmergencyMode(true)}
+            aria-label="Emergency mode"
+          >
+            <Siren size={22} className="text-white" />
+          </motion.button>
+        )}
+      </motion.div>
     </div>
   );
 }

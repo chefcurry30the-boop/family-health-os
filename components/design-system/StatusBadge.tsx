@@ -6,28 +6,32 @@ interface StatusBadgeProps {
 export function StatusBadge({ status, size = "md" }: StatusBadgeProps) {
   const config = {
     healthy: {
-      bg: "bg-green-hospital/15",
-      text: "text-green-hospital",
-      dot: "bg-green-hospital",
-      label: "OK",
+      bg: "bg-medical-green/15",
+      text: "text-medical-green",
+      dot: "bg-medical-green",
+      glow: "shadow-[0_0_8px_rgba(48,209,88,0.3)]",
+      label: "Healthy",
     },
     monitored: {
-      bg: "bg-amber-warn/15",
-      text: "text-amber-warn",
-      dot: "bg-amber-warn",
-      label: "Watch",
+      bg: "bg-medical-amber/15",
+      text: "text-medical-amber",
+      dot: "bg-medical-amber",
+      glow: "shadow-[0_0_8px_rgba(255,159,10,0.3)]",
+      label: "Attention Needed",
     },
     critical: {
-      bg: "bg-red-emergency/15",
-      text: "text-red-emergency",
-      dot: "bg-red-emergency",
-      label: "Alert",
+      bg: "bg-medical-red/15",
+      text: "text-medical-red",
+      dot: "bg-medical-red",
+      glow: "shadow-[0_0_8px_rgba(255,69,58,0.3)]",
+      label: "Critical",
     },
     watch: {
-      bg: "bg-blue-accent/15",
-      text: "text-blue-accent",
-      dot: "bg-blue-accent",
-      label: "Watch",
+      bg: "bg-medical-blue/15",
+      text: "text-medical-blue",
+      dot: "bg-medical-blue",
+      glow: "",
+      label: "Attention Needed",
     },
   };
 
@@ -36,7 +40,7 @@ export function StatusBadge({ status, size = "md" }: StatusBadgeProps) {
 
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full font-medium ${c.bg} ${c.text} ${sizeClasses}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${c.dot} ${status === "critical" ? "animate-pulse" : ""}`} />
+      <span className={`w-1.5 h-1.5 rounded-full ${c.dot} ${c.glow} ${status === "critical" ? "animate-pulse" : ""}`} />
       {c.label}
     </span>
   );
