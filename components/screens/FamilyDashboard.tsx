@@ -7,35 +7,38 @@ import { GlassPanel } from "@/components/design-system/GlassPanel";
 import { Avatar } from "@/components/design-system/Avatar";
 import { StatusBadge } from "@/components/design-system/StatusBadge";
 import { AmbientGlow } from "@/components/design-system/AmbientGlow";
-import { familyMembers } from "@/data/familyData";
 import { useFamilyStore } from "@/store/useFamilyStore";
 import { Users, ChevronRight, Activity } from "lucide-react";
 
 export default function FamilyDashboard() {
-  const { setSelectedMember, openModal } = useFamilyStore();
+  const { familyMembers, familyName, setSelectedMember, openModal } = useFamilyStore();
+
+  const monitored = familyMembers.filter((m) => m.status === "monitored").length;
+  const healthy = familyMembers.filter((m) => m.status === "healthy").length;
+  const critical = familyMembers.filter((m) => m.status === "critical").length;
 
   return (
-    <ScreenContainer title="Family Health OS">
+    <ScreenContainer title={familyName || "Family Health OS"}>
       <StickyHeader className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Users size={18} className="text-ivory/60" />
-          <span className="text-sm font-medium text-ivory/80">Mitchell Family</span>
+          <Users size={18} className="text-white/70" />
+          <span className="text-sm font-medium text-white/90">{familyName || "My Family"}</span>
         </div>
-        <span className="text-xs text-ivory/70">5 members</span>
+        <span className="text-xs text-white/80">{familyMembers.length} members</span>
       </StickyHeader>
 
       <div className="px-5 pb-6">
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-2 mb-6">
           {[
-            { icon: Activity, label: "Monitored", value: "1", color: "text-amber-warn" },
-            { icon: Users, label: "Healthy", value: "3", color: "text-green-hospital" },
-            { icon: Activity, label: "Critical", value: "1", color: "text-red-emergency" },
+            { icon: Activity, label: "Monitored", value: String(monitored), color: "text-amber-warn" },
+            { icon: Users, label: "Healthy", value: String(healthy), color: "text-green-hospital" },
+            { icon: Activity, label: "Critical", value: String(critical), color: "text-red-emergency" },
           ].map((stat, i) => (
             <GlassPanel key={i} className="p-3 text-center">
               <stat.icon size={16} className={`mx-auto mb-1 ${stat.color}`} />
               <p className={`text-lg font-bold ${stat.color}`}>{stat.value}</p>
-              <p className="text-[10px] text-ivory/80">{stat.label}</p>
+              <p className="text-[10px] text-white/90">{stat.label}</p>
             </GlassPanel>
           ))}
         </div>
@@ -71,17 +74,17 @@ export default function FamilyDashboard() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <p className="font-semibold text-ivory text-sm truncate">
+                    <p className="font-semibold text-white text-sm truncate">
                       {member.name}
                     </p>
                     <StatusBadge status={member.status} size="sm" />
                   </div>
-                  <p className="text-xs text-ivory/80">
+                  <p className="text-xs text-white/90">
                     {member.relation} · {member.age} yrs · {member.activeRx} active Rx
                   </p>
                 </div>
 
-                <ChevronRight size={16} className="text-ivory/30 shrink-0" />
+                <ChevronRight size={16} className="text-white/50 shrink-0" />
               </GlassPanel>
             </motion.button>
           ))}

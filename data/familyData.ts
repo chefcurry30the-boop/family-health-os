@@ -267,13 +267,13 @@ export const expenses: Expense[] = [
 ];
 
 export const vaccinations: Vaccination[] = [
-  { id: "1", name: "DTaP (Diphtheria, Tetanus, Pertussis)", doses: "5 doses", status: "complete" },
-  { id: "2", name: "MMR (Measles, Mumps, Rubella)", doses: "2 doses", status: "complete" },
-  { id: "3", name: "Polio (IPV)", doses: "4 doses", status: "complete" },
-  { id: "4", name: "Hepatitis B", doses: "3 doses", status: "complete" },
-  { id: "5", name: "HPV — Dose 1", doses: "", status: "complete", date: "Jun 15, 2024", doctor: "Dr. Williams" },
-  { id: "6", name: "Annual Flu Shot", doses: "", status: "current", date: "Oct 5, 2024", doctor: "" },
-  { id: "7", name: "HPV Vaccine — Dose 2", doses: "", status: "due", date: "December 15, 2024", doctor: "Dr. Williams" },
+  { id: "1", memberId: "emma", name: "DTaP (Diphtheria, Tetanus, Pertussis)", doses: "5 doses", status: "complete" },
+  { id: "2", memberId: "emma", name: "MMR (Measles, Mumps, Rubella)", doses: "2 doses", status: "complete" },
+  { id: "3", memberId: "emma", name: "Polio (IPV)", doses: "4 doses", status: "complete" },
+  { id: "4", memberId: "emma", name: "Hepatitis B", doses: "3 doses", status: "complete" },
+  { id: "5", memberId: "emma", name: "HPV — Dose 1", doses: "", status: "complete", date: "Jun 15, 2024", doctor: "Dr. Williams" },
+  { id: "6", memberId: "emma", name: "Annual Flu Shot", doses: "", status: "current", date: "Oct 5, 2024", doctor: "" },
+  { id: "7", memberId: "emma", name: "HPV Vaccine — Dose 2", doses: "", status: "due", date: "December 15, 2024", doctor: "Dr. Williams" },
 ];
 
 export const upcomingVaccination = {

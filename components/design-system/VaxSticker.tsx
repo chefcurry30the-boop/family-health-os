@@ -57,12 +57,12 @@ export function VaxSticker({
           {status === "due" && <div className="w-2 h-2 rounded-full bg-current animate-pulse" />}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-ivory truncate">{name}</p>
+          <p className="text-sm font-semibold text-white truncate">{name}</p>
           {doses && (
-            <p className="text-[11px] text-ivory/80">{doses}</p>
+            <p className="text-[11px] text-white/90">{doses}</p>
           )}
           {date && (
-            <p className="text-[11px] text-ivory/80 mt-0.5">
+            <p className="text-[11px] text-white/90 mt-0.5">
               {status === "due" ? "Due: " : ""}
               {date}
               {doctor ? ` · ${doctor}` : ""}

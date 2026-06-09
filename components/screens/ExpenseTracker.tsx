@@ -1,12 +1,13 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ScreenContainer } from "@/components/shell/ScreenContainer";
 import { StickyHeader } from "@/components/shell/StickyHeader";
 import { GlassPanel } from "@/components/design-system/GlassPanel";
 import { Avatar } from "@/components/design-system/Avatar";
-import { expenses, expenseSummary, memberExpenses, familyMembers } from "@/data/familyData";
-import { Wallet, TrendingUp, TrendingDown, Pill, Stethoscope, Building2, CheckCircle2, AlertTriangle } from "lucide-react";
+import { useFamilyStore } from "@/store/useFamilyStore";
+import { Wallet, TrendingUp, TrendingDown, Pill, Stethoscope, Building2, CheckCircle2, AlertTriangle, Plus, X } from "lucide-react";
 
 const iconMap: Record<string, React.ElementType> = {
   pill: Pill,
@@ -18,6 +19,15 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 export default function ExpenseTracker() {
+  const { expenses, addExpense, removeExpense, familyMembers, familyName } = useFamilyStore();
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({
+    description: "",
+    amount: "",
+    memberId: "",
+    category: "pharmacy",
+  });
+
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -26,16 +36,50 @@ export default function ExpenseTracker() {
       maximumFractionDigits: 0,
     }).format(Math.abs(amount));
 
+  const yearToDate = expenses.reduce((sum, e) => sum + Math.abs(e.amount), 0);
+  const outOfPocket = expenses.filter((e) => e.amount < 0).reduce((sum, e) => sum + Math.abs(e.amount), 0);
+  const insurancePaid = 0; // Simplified
+  const pending = 0; // Simplified
+
+  const memberTotals = familyMembers.map((m) => {
+    const amount = expenses.filter((e) => e.memberId === m.id).reduce((sum, e) => sum + Math.abs(e.amount), 0);
+    return { memberId: m.id, amount };
+  }).filter((me) => me.amount > 0);
+
+  const handleAdd = () => {
+    if (!form.description.trim() || !form.amount || !form.memberId) return;
+    addExpense({
+      id: String(Date.now()),
+      description: form.description.trim(),
+      amount: -Math.abs(Number(form.amount)),
+      date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      memberId: form.memberId,
+      category: form.category,
+      icon: form.category === "pharmacy" ? "pill" : form.category === "hospital" ? "hospital" : "stethoscope",
+    });
+    setForm({ description: "", amount: "", memberId: "", category: "pharmacy" });
+    setShowForm(false);
+  };
+
   return (
     <ScreenContainer title="Expense Tracker">
       <StickyHeader className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Wallet size={18} className="text-ivory/60" />
-          <span className="text-sm font-medium text-ivory/80">
-            Mitchell Family
+          <Wallet size={18} className="text-white/70" />
+          <span className="text-sm font-medium text-white/90">
+            {familyName || "My Family"}
           </span>
         </div>
-        <span className="text-xs text-ivory/70">2024 YTD</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-white/80">2024 YTD</span>
+          <button
+            onClick={() => setShowForm((s) => !s)}
+            className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+            aria-label="Add expense"
+          >
+            {showForm ? <X size={14} className="text-white" /> : <Plus size={14} className="text-white" />}
+          </button>
+        </div>
       </StickyHeader>
 
       <div className="px-5 pb-6">
@@ -44,51 +88,51 @@ export default function ExpenseTracker() {
           <GlassPanel className="p-3">
             <div className="flex items-center gap-1.5 mb-1">
               <TrendingUp size={14} className="text-red-light" />
-              <span className="text-[10px] text-ivory/80">Total Spent</span>
+              <span className="text-[10px] text-white/90">Total Spent</span>
             </div>
             <p className="text-lg font-bold text-red-light">
-              {formatCurrency(expenseSummary.yearToDate)}
+              {formatCurrency(yearToDate)}
             </p>
           </GlassPanel>
           <GlassPanel className="p-3">
             <div className="flex items-center gap-1.5 mb-1">
               <TrendingDown size={14} className="text-green-hospital" />
-              <span className="text-[10px] text-ivory/80">Out of Pocket</span>
+              <span className="text-[10px] text-white/90">Out of Pocket</span>
             </div>
             <p className="text-lg font-bold text-green-hospital">
-              {formatCurrency(expenseSummary.outOfPocket)}
+              {formatCurrency(outOfPocket)}
             </p>
           </GlassPanel>
           <GlassPanel className="p-3">
             <div className="flex items-center gap-1.5 mb-1">
               <CheckCircle2 size={14} className="text-blue-accent" />
-              <span className="text-[10px] text-ivory/80">Insurance</span>
+              <span className="text-[10px] text-white/90">Insurance</span>
             </div>
             <p className="text-lg font-bold text-blue-accent">
-              {formatCurrency(expenseSummary.insurancePaid)}
+              {formatCurrency(insurancePaid)}
             </p>
           </GlassPanel>
           <GlassPanel className="p-3">
             <div className="flex items-center gap-1.5 mb-1">
               <AlertTriangle size={14} className="text-amber-warn" />
-              <span className="text-[10px] text-ivory/80">Pending</span>
+              <span className="text-[10px] text-white/90">Pending</span>
             </div>
             <p className="text-lg font-bold text-amber-warn">
-              {formatCurrency(expenseSummary.pending)}
+              {formatCurrency(pending)}
             </p>
           </GlassPanel>
         </div>
 
         {/* Member Breakdown */}
         <GlassPanel className="p-4 mb-5">
-          <p className="text-xs font-medium text-ivory/80 mb-3">
+          <p className="text-xs font-medium text-white/90 mb-3">
             Spending by Member
           </p>
           <div className="space-y-3">
-            {memberExpenses.map((me) => {
+            {memberTotals.map((me) => {
               const member = familyMembers.find((m) => m.id === me.memberId);
               if (!member) return null;
-              const pct = (me.amount / expenseSummary.yearToDate) * 100;
+              const pct = yearToDate > 0 ? (me.amount / yearToDate) * 100 : 0;
               return (
                 <div key={me.memberId}>
                   <div className="flex items-center justify-between mb-1">
@@ -98,15 +142,15 @@ export default function ExpenseTracker() {
                         gradient={member.avatarGradient}
                         size="sm"
                       />
-                      <span className="text-xs text-ivory/80">
+                      <span className="text-xs text-white/90">
                         {member.name}
                       </span>
                     </div>
-                    <span className="text-xs text-ivory/80">
+                    <span className="text-xs text-white/90">
                       {formatCurrency(me.amount)}
                     </span>
                   </div>
-                  <div className="h-1.5 rounded-full bg-ivory/10 overflow-hidden ml-10">
+                  <div className="h-1.5 rounded-full bg-white/10 overflow-hidden ml-10">
                     <motion.div
                       className="h-full rounded-full"
                       style={{
@@ -123,8 +167,53 @@ export default function ExpenseTracker() {
           </div>
         </GlassPanel>
 
+        <AnimatePresence>
+          {showForm && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-4 overflow-hidden"
+            >
+              <GlassPanel className="p-3 space-y-2">
+                <input
+                  value={form.description}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  placeholder="Description"
+                  className="w-full bg-transparent text-sm text-white placeholder:text-white/60 outline-none"
+                />
+                <input
+                  value={form.amount}
+                  onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
+                  placeholder="Amount ($)"
+                  type="number"
+                  className="w-full bg-transparent text-sm text-white placeholder:text-white/60 outline-none"
+                />
+                <select
+                  value={form.memberId}
+                  onChange={(e) => setForm((f) => ({ ...f, memberId: e.target.value }))}
+                  className="w-full bg-transparent text-sm text-white outline-none"
+                >
+                  <option value="" className="bg-navy-deep">Select member</option>
+                  {familyMembers.map((m) => (
+                    <option key={m.id} value={m.id} className="bg-navy-deep">
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={handleAdd}
+                  className="w-full py-2 rounded-xl bg-blue-accent text-white text-sm font-medium hover:bg-blue-accent/80 transition-colors"
+                >
+                  Add Expense
+                </button>
+              </GlassPanel>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Transaction List */}
-        <p className="text-xs font-medium text-ivory/80 mb-3">
+        <p className="text-xs font-medium text-white/90 mb-3">
           Recent Transactions
         </p>
         <div className="space-y-2">
@@ -136,19 +225,27 @@ export default function ExpenseTracker() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.06 }}
+                className="relative group"
               >
+                <button
+                  onClick={() => removeExpense(expense.id)}
+                  className="absolute right-2 top-2 z-10 w-6 h-6 rounded-full bg-red-emergency/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label="Remove expense"
+                >
+                  <X size={12} className="text-red-emergency" />
+                </button>
                 <GlassPanel
                   variant="strong"
                   className="p-3 flex items-center gap-3"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-ivory/5 flex items-center justify-center shrink-0">
-                    <Icon size={16} className="text-ivory/50" />
+                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                    <Icon size={16} className="text-white/60" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-ivory truncate">
+                    <p className="text-sm font-medium text-white truncate">
                       {expense.description}
                     </p>
-                    <p className="text-[11px] text-ivory/70">
+                    <p className="text-[11px] text-white/80">
                       {expense.date} ·{" "}
                       {expense.memberId === "all"
                         ? "All members"
@@ -160,7 +257,7 @@ export default function ExpenseTracker() {
                     className={`text-sm font-semibold shrink-0 ${
                       expense.amount > 0
                         ? "text-green-hospital"
-                        : "text-ivory/70"
+                        : "text-white/80"
                     }`}
                   >
                     {expense.amount > 0 ? "+" : ""}

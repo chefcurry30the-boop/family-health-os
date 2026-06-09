@@ -37,17 +37,17 @@ export function TimelineEntry({
       {/* Timeline line + dot */}
       <div className="flex flex-col items-center shrink-0 w-6">
         <div className={`w-3 h-3 rounded-full ${dotColor[type]} shadow-lg`} />
-        <div className="w-px flex-1 bg-ivory/10 mt-1" />
+        <div className="w-px flex-1 bg-white/10 mt-1" />
       </div>
 
       {/* Card */}
       <div className="glass-strong rounded-2xl p-4 flex-1 mb-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] text-ivory/80 font-mono">{date}</span>
-          <span className="text-[11px] text-ivory/70">{memberName}</span>
+          <span className="text-[11px] text-white/90 font-mono">{date}</span>
+          <span className="text-[11px] text-white/80">{memberName}</span>
         </div>
-        <h3 className="text-sm font-semibold text-ivory mb-1">{title}</h3>
-        <p className="text-xs text-ivory/80 leading-relaxed mb-2">{description}</p>
+        <h3 className="text-sm font-semibold text-white mb-1">{title}</h3>
+        <p className="text-xs text-white/90 leading-relaxed mb-2">{description}</p>
         <div className="flex flex-wrap gap-1.5">
           {tags.map((tag) => (
             <StatusBadge

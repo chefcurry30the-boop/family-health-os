@@ -25,7 +25,7 @@ export function ScreenContainer({ children, className = "", title }: ScreenConta
     >
       {title && (
         <div className="px-5 pt-3 pb-2">
-          <h1 className="text-2xl font-semibold tracking-tight font-display text-ivory">
+          <h1 className="text-2xl font-semibold tracking-tight font-display text-white">
             {title}
           </h1>
         </div>
