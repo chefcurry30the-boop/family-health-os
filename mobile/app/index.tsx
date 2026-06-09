@@ -20,6 +20,12 @@ import {
   Siren,
   ChevronRight,
   Activity,
+  Heart,
+  Stethoscope,
+  ClipboardList,
+  Wallet,
+  Sparkles,
+  Calendar,
 } from "lucide-react-native";
 
 function formatINR(amount: number) {
@@ -121,6 +127,36 @@ export default function Dashboard() {
                 </View>
               )}
             </GlassView>
+          ))}
+        </View>
+
+        {/* Quick Access */}
+        <Text className="text-white/50 text-xs font-medium uppercase tracking-wider mb-2">
+          Quick Access
+        </Text>
+        <View className="flex-row flex-wrap gap-2 mb-6">
+          {[
+            { icon: Heart, label: "Timeline", route: "/timeline", color: "#ff6b81", bg: "bg-[#ff6b81]/10" },
+            { icon: Pill, label: "Meds", route: "/medications", color: "#ff9f0a", bg: "bg-[#ff9f0a]/10" },
+            { icon: Shield, label: "Vaccines", route: "/vaccinations", color: "#bf5af2", bg: "bg-[#bf5af2]/10" },
+            { icon: Stethoscope, label: "Journal", route: "/journal", color: "#5fc9f8", bg: "bg-[#5fc9f8]/10" },
+            { icon: ClipboardList, label: "Visits", route: "/visit-prep", color: "#0a84ff", bg: "bg-[#0a84ff]/10" },
+            { icon: Wallet, label: "Expenses", route: "/expenses", color: "#30d158", bg: "bg-[#30d158]/10" },
+            { icon: Sparkles, label: "AI Copilot", route: "/copilot", color: "#bf5af2", bg: "bg-[#bf5af2]/10" },
+          ].map((item) => (
+            <TouchableOpacity
+              key={item.route}
+              onPress={() => router.push(item.route as any)}
+              activeOpacity={0.8}
+              className="flex-1 min-w-[30%]"
+            >
+              <GlassView className="p-3 items-center">
+                <View className={`w-9 h-9 rounded-full ${item.bg} items-center justify-center mb-1.5`}>
+                  <item.icon size={16} color={item.color} />
+                </View>
+                <Text className="text-white text-[11px] font-medium">{item.label}</Text>
+              </GlassView>
+            </TouchableOpacity>
           ))}
         </View>
 
