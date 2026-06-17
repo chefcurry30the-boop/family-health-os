@@ -14,22 +14,22 @@ export function MedicationTimeBadge({
     morning: {
       icon: Sunrise,
       label: "AM",
-      color: "bg-amber-warn/15 text-amber-warn",
+      color: "bg-medical-amber/15 text-medical-amber",
     },
     afternoon: {
       icon: Sun,
       label: "PM",
-      color: "bg-blue-accent/15 text-blue-accent",
+      color: "bg-medical-blue/15 text-medical-blue",
     },
     evening: {
       icon: Sunset,
       label: "Eve",
-      color: "bg-purple-accent/15 text-purple-accent",
+      color: "bg-medical-purple/15 text-medical-purple",
     },
     night: {
       icon: Moon,
       label: "Night",
-      color: "bg-blue-deep/15 text-blue-accent",
+      color: "bg-medical-teal/15 text-medical-teal",
     },
   };
 

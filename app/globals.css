@@ -4,45 +4,58 @@
 
 :root {
   /* ═══════════════════════════════════════════════
-     NOVA HEALTH OS — DESIGN TOKENS
-     Liquid Glass + Premium Healthcare Skeuomorphism
+     NOVA HEALTH OS — APPLE PREMIUM DESIGN TOKENS
+     VisionOS Glass + Apple Health + Deep Navy Dark
      ═══════════════════════════════════════════════ */
 
   /* --- Core Palette --- */
-  --navy-deep: oklch(12% 0.04 260);
-  --navy: oklch(18% 0.05 260);
-  --navy-light: oklch(25% 0.06 260);
-  --leather: oklch(32% 0.10 50);
-  --leather-light: oklch(42% 0.12 55);
-  --leather-warm: oklch(38% 0.11 52);
-  --ivory: oklch(96% 0.008 90);
-  --ivory-dark: oklch(92% 0.010 85);
-  --paper: oklch(94% 0.007 88);
-  --paper-aged: oklch(90% 0.015 80);
-  --green-hospital: oklch(55% 0.14 155);
-  --green-light: oklch(72% 0.12 155);
-  --green-glow: oklch(60% 0.18 155);
-  --red-emergency: oklch(52% 0.22 25);
-  --red-glow: oklch(55% 0.24 25);
-  --red-light: oklch(70% 0.18 25);
-  --amber-warn: oklch(68% 0.16 75);
-  --blue-accent: oklch(58% 0.16 255);
-  --blue-light: oklch(72% 0.12 255);
-  --purple-accent: oklch(55% 0.18 300);
+  --navy-deep: #060b14;
+  --navy: #0a1120;
+  --navy-light: #101a2e;
+  --surface-elevated: #121d33;
+  --surface-hover: #1a2744;
 
-  /* --- Glass Tokens --- */
+  /* Medical Status Colors */
+  --status-healthy: #30d158;
+  --status-healthy-glow: rgba(48, 209, 88, 0.3);
+  --status-attention: #ff9f0a;
+  --status-attention-glow: rgba(255, 159, 10, 0.3);
+  --status-critical: #ff453a;
+  --status-critical-glow: rgba(255, 69, 58, 0.3);
+
+  /* Semantic Colors */
+  --medical-blue: #0a84ff;
+  --medical-blue-light: #64d2ff;
+  --medical-teal: #5fc9f8;
+  --medical-purple: #bf5af2;
+  --medical-pink: #ff375f;
+  --medical-amber: #ff9f0a;
+  --medical-green: #30d158;
+  --medical-red: #ff453a;
+
+  /* Text Colors */
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-tertiary: rgba(255, 255, 255, 0.5);
+  --text-quaternary: rgba(255, 255, 255, 0.3);
+
+  /* --- Glass Tokens (VisionOS Inspired) --- */
   --glass-bg: rgba(255, 255, 255, 0.06);
   --glass-bg-strong: rgba(255, 255, 255, 0.10);
   --glass-bg-heavy: rgba(255, 255, 255, 0.14);
-  --glass-border: rgba(255, 255, 255, 0.18);
-  --glass-border-strong: rgba(255, 255, 255, 0.30);
-  --glass-highlight: rgba(255, 255, 255, 0.40);
-  --glass-shadow: rgba(0, 0, 0, 0.30);
-  --glass-blur: 40px;
-  --glass-blur-heavy: 60px;
+  --glass-bg-ultra: rgba(255, 255, 255, 0.20);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border-strong: rgba(255, 255, 255, 0.20);
+  --glass-border-ultra: rgba(255, 255, 255, 0.30);
+  --glass-highlight: rgba(255, 255, 255, 0.25);
+  --glass-highlight-strong: rgba(255, 255, 255, 0.40);
+  --glass-shadow: rgba(0, 0, 0, 0.40);
+  --glass-blur: 30px;
+  --glass-blur-heavy: 50px;
+  --glass-blur-ultra: 80px;
 
-  /* --- Typography --- */
-  --font-display: 'New York', 'Iowan Old Style', 'Charter', Georgia, serif;
+  /* --- Typography (Apple System) --- */
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
   --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
   --font-mono: 'SF Mono', ui-monospace, Menlo, monospace;
 
@@ -51,11 +64,9 @@
   --sp6: 24px; --sp7: 32px; --sp8: 40px; --sp9: 48px; --sp10: 64px;
 
   /* --- Radius --- */
-  --r-sm: 8px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px; --r-2xl: 36px;
+  --r-sm: 10px; --r-md: 16px; --r-lg: 22px; --r-xl: 30px; --r-2xl: 40px;
 
-  /* --- Safe Areas --- */
-  --safe-top: 59px;
-  --safe-bottom: 34px;
+  /* --- Safe Areas (use env(safe-area-inset-*) in components) --- */
 }
 
 @layer base {
@@ -75,14 +86,17 @@
 }
 
 @layer components {
-  /* ═══════ GLASS PANELS ═══════ */
+  /* ═══════ GLASS PANELS (VisionOS Style) ═══════ */
   .glass {
     background: var(--glass-bg);
     backdrop-filter: blur(var(--glass-blur)) saturate(180%);
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
     border: 1px solid var(--glass-border);
     border-radius: var(--r-lg);
-    box-shadow: 0 8px 32px var(--glass-shadow), inset 0 1px 0 var(--glass-highlight);
+    box-shadow:
+      0 4px 24px var(--glass-shadow),
+      inset 0 1px 0 var(--glass-highlight),
+      inset 0 -1px 0 rgba(0,0,0,0.1);
   }
 
   .glass-strong {
@@ -91,86 +105,73 @@
     -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(200%);
     border: 1px solid var(--glass-border-strong);
     border-radius: var(--r-lg);
-    box-shadow: 0 8px 32px var(--glass-shadow), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 var(--glass-highlight);
+    box-shadow:
+      0 8px 32px var(--glass-shadow),
+      inset 0 1px 0 var(--glass-highlight-strong),
+      inset 0 -1px 0 rgba(0,0,0,0.15);
   }
 
   .glass-heavy {
     background: var(--glass-bg-heavy);
-    backdrop-filter: blur(var(--glass-blur-heavy)) saturate(220%);
-    -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(220%);
-    border: 1px solid var(--glass-border-strong);
+    backdrop-filter: blur(var(--glass-blur-ultra)) saturate(220%);
+    -webkit-backdrop-filter: blur(var(--glass-blur-ultra)) saturate(220%);
+    border: 1px solid var(--glass-border-ultra);
     border-radius: var(--r-xl);
-    box-shadow: 0 12px 48px var(--glass-shadow), 0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 var(--glass-highlight), inset 0 -1px 0 rgba(255,255,255,0.05);
+    box-shadow:
+      0 12px 48px var(--glass-shadow),
+      inset 0 1px 0 var(--glass-highlight-strong),
+      inset 0 -1px 0 rgba(0,0,0,0.2);
   }
 
-  /* ═══════ LEATHER TEXTURE ═══════ */
-  .leather-bg {
-    background:
-      radial-gradient(ellipse at 20% 30%, rgba(60,30,10,0.3) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 70%, rgba(80,40,15,0.2) 0%, transparent 50%),
-      repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px),
-      repeating-linear-gradient(-45deg, transparent, transparent 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px),
-      linear-gradient(160deg, #3a2418 0%, #2d1a10 40%, #1e1008 100%);
-  }
-
-  .leather-grain {
-    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
-  }
-
-  /* ═══════ PAPER TEXTURE ═══════ */
-  .paper-texture {
-    background:
-      repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(0,0,0,0.02) 28px, rgba(0,0,0,0.02) 29px),
-      linear-gradient(180deg, var(--ivory) 0%, var(--ivory-dark) 100%);
-    box-shadow: inset 0 0 40px rgba(0,0,0,0.03);
-  }
-
-  .paper-aged {
-    background:
-      radial-gradient(ellipse at 30% 20%, rgba(180,150,100,0.15) 0%, transparent 60%),
-      repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(0,0,0,0.015) 28px, rgba(0,0,0,0.015) 29px),
-      linear-gradient(170deg, var(--paper-aged) 0%, #d4c9b0 100%);
-  }
-
-  /* ═══════ STITCHED BORDER ═══════ */
-  .stitched {
-    border: 2px dashed rgba(180,150,100,0.5);
-    outline: 1px solid rgba(180,150,100,0.15);
-    outline-offset: 4px;
-  }
-
-  /* ═══════ METALLIC SURFACE ═══════ */
-  .metallic {
+  .glass-card {
     background: linear-gradient(180deg,
-      rgba(255,255,255,0.25) 0%,
-      rgba(255,255,255,0.08) 30%,
-      rgba(255,255,255,0.03) 70%,
-      rgba(0,0,0,0.1) 100%);
-    border: 1px solid rgba(255,255,255,0.3);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4);
+      rgba(255,255,255,0.08) 0%,
+      rgba(255,255,255,0.04) 100%);
+    backdrop-filter: blur(var(--glass-blur-heavy)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: var(--r-lg);
+    box-shadow:
+      0 2px 12px rgba(0,0,0,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.15),
+      inset 0 -1px 0 rgba(0,0,0,0.05);
   }
 
   /* ═══════ EMERGENCY BG ═══════ */
   .emergency-bg {
     background:
-      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(220,40,40,0.03) 40px, rgba(220,40,40,0.03) 41px),
-      linear-gradient(180deg, #1a0808 0%, #120404 100%);
+      radial-gradient(ellipse at 50% 0%, rgba(255,69,58,0.15) 0%, transparent 60%),
+      linear-gradient(180deg, #1a0808 0%, #0c0404 100%);
   }
 
   /* ═══════ PER-SCREEN BACKGROUNDS ═══════ */
-  .bg-home { background: linear-gradient(180deg, #0c0c1e 0%, #100e1a 40%, #0e0c14 100%); }
-  .bg-timeline { background: linear-gradient(180deg, #0e0c14 0%, #12101a 50%, #0c0c1e 100%); }
-  .bg-copilot { background: linear-gradient(180deg, #16120c 0%, #1a1610 50%, #12100c 100%); }
-  .bg-meds { background: linear-gradient(180deg, #0c0c1e 0%, #0e1420 50%, #0a1018 100%); }
-  .bg-vax { background: linear-gradient(180deg, #0c1a14 0%, #0e1820 50%, #0a1420 100%); }
-  .bg-journal { background: linear-gradient(180deg, #14100c 0%, #181410 50%, #0e0c08 100%); }
-  .bg-expense { background: linear-gradient(180deg, #0c0c1e 0%, #12101a 50%, #0a0c18 100%); }
+  .bg-home {
+    background: linear-gradient(180deg, #060b14 0%, #0a1120 40%, #080e1a 100%);
+  }
+  .bg-timeline {
+    background: linear-gradient(180deg, #080e1a 0%, #0a1120 50%, #060b14 100%);
+  }
+  .bg-copilot {
+    background: linear-gradient(180deg, #0a0e18 0%, #0c1220 50%, #080c14 100%);
+  }
+  .bg-meds {
+    background: linear-gradient(180deg, #060b14 0%, #0a1420 50%, #060c18 100%);
+  }
+  .bg-vax {
+    background: linear-gradient(180deg, #060c18 0%, #0a1220 50%, #060b14 100%);
+  }
+  .bg-journal {
+    background: linear-gradient(180deg, #0a0e14 0%, #0c1018 50%, #080c10 100%);
+  }
+  .bg-expense {
+    background: linear-gradient(180deg, #060b14 0%, #0a1020 50%, #060c18 100%);
+  }
 }
 
 @layer utilities {
   /* ═══════ ANIMATIONS ═══════ */
   @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(24px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
@@ -179,25 +180,28 @@
     to { opacity: 1; }
   }
 
-  @keyframes folderOpen {
-    from { opacity: 0; transform: scale(0.95) translateY(10px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
   }
 
   @keyframes emergencyPulse {
-    0%, 100% { box-shadow: 0 0 30px rgba(255,40,40,0.5), 0 4px 16px rgba(200,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3); }
-    50% { box-shadow: 0 0 50px rgba(255,40,40,0.7), 0 4px 20px rgba(200,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3); }
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(255,69,58,0.4), 0 0 60px rgba(255,69,58,0.2);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(255,69,58,0.6), 0 0 80px rgba(255,69,58,0.3);
+    }
   }
 
-  @keyframes glowPulse {
-    0%, 100% { opacity: 0.6; }
+  @keyframes emergencyGlow {
+    0%, 100% { opacity: 0.5; }
     50% { opacity: 1; }
   }
 
-  @keyframes pressIn {
-    0% { transform: scale(1); }
-    50% { transform: scale(0.96); }
-    100% { transform: scale(1); }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
   }
 
   .anim-slide-up {
@@ -208,16 +212,16 @@
     animation: fadeIn 0.4s ease both;
   }
 
-  .anim-folder {
-    animation: folderOpen 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  .anim-scale {
+    animation: scaleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   .anim-emergency-pulse {
-    animation: emergencyPulse 2s ease-in-out infinite;
+    animation: emergencyPulse 2.5s ease-in-out infinite;
   }
 
-  .anim-glow-pulse {
-    animation: glowPulse 3s ease-in-out infinite;
+  .anim-emergency-glow {
+    animation: emergencyGlow 2s ease-in-out infinite;
   }
 
   /* Font utilities */
@@ -233,4 +237,16 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Status dots */
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .status-healthy { background: var(--status-healthy); box-shadow: 0 0 8px var(--status-healthy-glow); }
+  .status-attention { background: var(--status-attention); box-shadow: 0 0 8px var(--status-attention-glow); }
+  .status-critical { background: var(--status-critical); box-shadow: 0 0 8px var(--status-critical-glow); }
 }

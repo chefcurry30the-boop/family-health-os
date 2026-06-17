@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Nova Health OS",
+    "slug": "nova-health-os",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#060b14",
+    "splash": {
+      "backgroundColor": "#060b14",
+      "image": "./assets/splash.png",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.novahealth.os"
+    },
+    "android": {
+      "package": "com.novahealth.os",
+      "adaptiveIcon": {
+        "backgroundColor": "#060b14",
+        "foregroundImage": "./assets/adaptive-icon.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}

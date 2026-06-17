@@ -20,19 +20,19 @@ export function VaxSticker({
 }: VaxStickerProps) {
   const statusStyles = {
     complete: {
-      border: "border-green-hospital/40",
-      bg: "bg-green-hospital/10",
-      icon: "text-green-hospital",
+      border: "border-medical-green/40",
+      bg: "bg-medical-green/10",
+      icon: "text-medical-green",
     },
     current: {
-      border: "border-blue-accent/40",
-      bg: "bg-blue-accent/10",
-      icon: "text-blue-accent",
+      border: "border-medical-blue/40",
+      bg: "bg-medical-blue/10",
+      icon: "text-medical-blue",
     },
     due: {
-      border: "border-amber-warn/40",
-      bg: "bg-amber-warn/10",
-      icon: "text-amber-warn",
+      border: "border-medical-amber/40",
+      bg: "bg-medical-amber/10",
+      icon: "text-medical-amber",
     },
   };
 
@@ -41,28 +41,25 @@ export function VaxSticker({
   return (
     <div
       className={cn(
-        "relative p-3 rounded-2xl border-2 border-dashed backdrop-blur-sm",
+        "relative p-3.5 rounded-2xl border-2 border-dashed backdrop-blur-sm",
         s.border,
         s.bg,
         className
       )}
-      style={{
-        transform: `rotate(${Math.random() * 4 - 2}deg)`,
-      }}
     >
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-2.5">
         <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5", s.border, s.icon)}>
           {status === "complete" && <Check size={12} strokeWidth={3} />}
           {status === "current" && <div className="w-2 h-2 rounded-full bg-current" />}
           {status === "due" && <div className="w-2 h-2 rounded-full bg-current animate-pulse" />}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-ivory truncate">{name}</p>
+          <p className="text-sm font-semibold text-white truncate">{name}</p>
           {doses && (
-            <p className="text-[11px] text-ivory/80">{doses}</p>
+            <p className="text-[11px] text-white/60">{doses}</p>
           )}
           {date && (
-            <p className="text-[11px] text-ivory/80 mt-0.5">
+            <p className="text-[11px] text-white/60 mt-0.5">
               {status === "due" ? "Due: " : ""}
               {date}
               {doctor ? ` · ${doctor}` : ""}

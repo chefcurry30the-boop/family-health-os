@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --navy-deep: #060b14;
+    --navy: #0a1120;
+    --navy-light: #101a2e;
+    --medical-red: #ff453a;
+    --medical-blue: #0a84ff;
+    --medical-green: #30d158;
+    --medical-amber: #ff9f0a;
+    --medical-purple: #bf5af2;
+    --medical-teal: #5fc9f8;
+  }
+}
